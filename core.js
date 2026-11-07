@@ -47,7 +47,7 @@
     retryHpFloor: 0.3,
     startCoins: 4,
 
-    coinsWin: 5, coinsElite: 4, coinsBoss: 12, quizWrongHp: 40, feastCost: 18, feastExtra: 0.2, coinsPurse: 1, skipCoins: 3,
+    coinsWin: 12, coinsElite: 8, coinsBoss: 20, feastCost: 18, feastExtra: 0.2, coinsPurse: 1, skipCoins: 3,
 
     // ---- enemies. hp = base HP. atk = base damage per attack row. turns = rounds before enrage.
     //      spells = the familiar words they cast (their "incantations"). trait: see TRAITS. ----
@@ -161,16 +161,18 @@
                     { fight: 0.52, elite: 0.4, unknown: 0.2 }, { fight: 0.47, elite: 0.5, unknown: 0.15 }, { rest: 0.5, shop: 0.3, fight: 0.2 } ],
         mustHave: { 9: "elite", 10: "rest" }, clues: true, clueRows: [1, 6] },
     ],
-    hpPerRow: 0.06,   // 11 rows an act now (was 0.08 over 8)
-    earlyEase: { hp: 0.75, atk: 0.85 },
-    firstDuel: { hp: 0.35, atk: 0.7 },   // d: "make that first lower the hitpoints" (Act I row 1; playtest: ~2,200 HP was the wall)   // d: the first third of each act is a bit easier (playtest: the first duel was the wall)
-    foeHpScale: 0.75, foeAtkScale: 1.15,   // 2026-11-07, eased enrage: expert bot ~52% runs won (0.7 gave 61%, 0.8 44%)
-    elite: { hp: 1.0, atk: 1.1 },
-    boss: { hp: 1.0, atk: 1.15 },
+    // d: "ramp the duel strength". Foes grow steadily row by row (playtest: 220 → 940 and 180 → 610 jumps between duels).
+    // Replaces the early-third ease, the first-duel step and HP per row. Bosses sit outside the ramp.
+    ramp: { hp: [0.3, 1.6], atk: [0.6, 1.1] },
+    foeHpScale: 0.55, foeAtkScale: 1.1,   // 2026-11-07, smooth ramp + tougher elites/bosses + 12 coins a win: expert bot 55% runs won
+    elite: { hp: 2.0, atk: 1.1 },   // elites and bosses skip roleHp; these keep them above the duels beside them (2026-11-07 ramp)
+    boss: { hp: 1.8, atk: 1.15 },
     roleHp: { student: 1.7, villain: 1.5, prefect: 1.0, elite: 1.0, boss: 1.0 },   // ordinary foes were pushovers next to elites (expert-bot calibration)   // playtest round 5: bosses died in two rounds
     rarityWeights: { common: 72, uncommon: 22, rare: 6, legendary: 0 },   // d: too many big boxes
     trial: { seconds: 45, wrongPenaltySec: 4, rewards: [ { at: 500, coins: 6 }, { at: 1100, reward: "common" }, { at: 1900, reward: "uncommon" } ] },
-    quiz: { questions: 6, choices: 4 },
+    // d, 2026-11-07: "the quiz should scale between difficulty levels". Word tier, number of choices and the cost of a wrong answer.
+    quiz: { questions: 6, choices: 4,
+      byDifficulty: { easy: { tiers: [1], choices: 3, wrongHp: 20 }, normal: { tiers: [1, 2], choices: 4, wrongHp: 40 }, hard: { tiers: [2, 3], choices: 5, wrongHp: 60 } } },
     seedChars: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
     maxCharms: 4, maxSigils: 3,
     shopOffers: 4, rerollCost: 6,
@@ -287,18 +289,16 @@
   // ======================= DICTIONARY =======================
   var dict = null, byKey = null, commonRank = null;
   function sortKey(s) { return s.split("").sort().join(""); }
-  // GPT playtest (via d): "the non-word ALB was accepted as a three-letter cancellation". ALB is Scrabble-legal, but short words
-  // must be ones players know: 2–3 letter words count only if they're common or on this hand-picked list. Slurs never count.
-  var SHORT_EXTRA = ("ad eek aah aha ail alp auk awl baa bah bog brr bum bun caw cob cog coo coy cud dud ebb eel eke ell eon ewe fad fen fez fib foe " +
-    "fro gab hag hah haw hew hoe hue icy ilk irk ism jab jag jib jig jog jot jug jut keg koi lop lye maw mew mow nab nag nah nit nix nub nun " +
-    "oaf oar oat oft oho orc ova pew pip pox pry pug pun pup pus rah rut sag shh sly sob sod sow sty tat tug tut tux ugh uke umm vex vim vow " +
-    "wad wag wok woe wry yak yam yap yaw yew yip yuk zag zap zed zit wiz").split(" ");
-  var NEVER = ("fag gyp yid wog wop lez goy").split(" ");
+  // d, 2026-11-07: "words with friends dictionary should be the rule". ENABLE (the list Words With Friends grew from) for 3+ letters,
+  // its full 2-letter list plus the Words With Friends additions. Slurs never count. (Replaces the "everyday short words" filter.)
+  var TWO_LETTER = ("aa ab ad ae ag ah ai al am an ar as at aw ax ay ba be bi bo by de do ed ef eh el em en er es et ew ex fa go ha he hi hm ho " +
+    "id if in is it jo ka la li lo ma me mi mm mo mu my na ne no nu od oe of oh ok om on op or os ow ox oy pa pe pi qi re sh si so ta ti to " +
+    "uh um un up us ut we wo xi xu ya ye yo za").split(" ");
+  var NEVER = ("fag fags gyp gyps yid yids wog wogs wop wops lez goy goys").split(" ");
   function loadDictionary(wordString, commonString) {
     dict = new Set(); byKey = new Map();
-    var shortOK = new Set(SHORT_EXTRA); (commonString || "").split(" ").forEach(function (w) { if (w && w.length <= 3) shortOK.add(w); });
-    wordString.split(" ").concat(SHORT_EXTRA).forEach(function (w) {
-      if (!w || dict.has(w) || NEVER.indexOf(w) >= 0 || (w.length <= 3 && !shortOK.has(w))) return;
+    wordString.split(" ").filter(function (w) { return w.length > 2; }).concat(TWO_LETTER).forEach(function (w) {
+      if (!w || dict.has(w) || NEVER.indexOf(w) >= 0) return;
       dict.add(w);
       var k = sortKey(w), arr = byKey.get(k);
       if (arr) arr.push(w); else byKey.set(k, [w]);
@@ -674,12 +674,13 @@
       if (cf >= 3) def.named = true;
       def.chair = true;             // the Silent Chair: All Speak here completes the Eighth's 49
     }
-    var early = !def.boss && n.r < Math.round((CONFIG.acts[(run.act || 1) - 1].rows) / 3), first = !def.boss && (run.act || 1) === 1 && n.r === 0;
+    var first = !def.boss && (run.act || 1) === 1 && n.r === 0;
     if (first) def.firstDuel = true;
-    var scale = (def.boss ? 1 : 1 + CONFIG.hpPerRow * n.r) * (early ? CONFIG.earlyEase.hp : 1) * (first ? CONFIG.firstDuel.hp : 1) * CONFIG.foeHpScale * (n.type === "elite" || def.boss ? 1 : (CONFIG.roleHp[def.role] || 1));
+    var rt = def.boss ? 1 : Math.min(1, n.r / Math.max(1, CONFIG.acts[(run.act || 1) - 1].rows - 1)), rmp = function (a) { return def.boss ? 1 : a[0] + (a[1] - a[0]) * rt; };
+    var scale = rmp(CONFIG.ramp.hp) * CONFIG.foeHpScale * (n.type === "elite" || def.boss ? 1 : (CONFIG.roleHp[def.role] || 1));
     var am = (run.mode === "slots" ? CONFIG.slots.foeHp : 1) * (CONFIG.actScale.hp[(run.act || 1) - 1] || 1);
     if (def.boss) { def.hp = Math.round(def.hp * CONFIG.boss.hp); def.atk = Math.round(def.atk * CONFIG.boss.atk); }   // bosses rise a little more gently; cap 3.0 (playtest: elites and bosses died in one cast)
-    def.atk = Math.round(def.atk * (early ? CONFIG.earlyEase.atk : 1) * (first ? CONFIG.firstDuel.atk : 1) * CONFIG.foeAtkScale * (CONFIG.actScale.atk[(run.act || 1) - 1] || 1) * ((CONFIG.difficulties[run.difficulty] || {}).foeAtk || 1) * (am > 1 ? 1 + (am - 1) / 2 : 1));
+    def.atk = Math.round(def.atk * rmp(CONFIG.ramp.atk) * CONFIG.foeAtkScale * (CONFIG.actScale.atk[(run.act || 1) - 1] || 1) * ((CONFIG.difficulties[run.difficulty] || {}).foeAtk || 1) * (am > 1 ? 1 + (am - 1) / 2 : 1));
     if (n.type === "elite") { scale *= CONFIG.elite.hp; def.atk = Math.round(def.atk * CONFIG.elite.atk); def.elite = true; }
     var YM = yearMods(run);
     if (def.elite) def.atk = Math.round(def.atk * YM.eliteAtk);
@@ -869,11 +870,17 @@
   // ---- Vocabulary Quiz (untimed) ----
   var VOCAB = [];
   function loadVocab(list) { VOCAB = list || []; }
+  // Quiz word tiers (1 everyday-ish, 2 bookish, 3 rare), sorted by hand.
+  var QUIZ_TIER1 = "luminous candid melancholy ominous placid resilient tenacious vex keen lament nimble oblivious quaint solace uncanny vigilant wane abyss cryptic elusive feral haughty kindle nocturnal serene whimsical zenith forlorn jovial labyrinth oracle sinister tome yearn aloof bewilder conjure omen spectral nemesis lucid ire hapless deft eloquent fickle mirth".split(" ");
+  var QUIZ_TIER3 = "laconic garrulous quixotic sardonic brusque taciturn blithe dour juxtapose languid alacrity nascent knell rancour veracity dirge effigy tryst umbrage misnomer petulant pernicious inscrutable mercurial usurp gossamer epitaph insidious".split(" ");
+  function quizTier(w) { return QUIZ_TIER1.indexOf(w) >= 0 ? 1 : QUIZ_TIER3.indexOf(w) >= 0 ? 3 : 2; }
+  function quizRules(run) { return CONFIG.quiz.byDifficulty[run.difficulty] || CONFIG.quiz.byDifficulty.normal; }
   function startQuiz(run, n) {
-    var R = seeded(n.evSeed + 77), Q = CONFIG.quiz, pool = VOCAB.slice(), qs = [];
-    for (var i = 0; i < Q.questions && pool.length >= Q.choices; i++) {
+    var R = seeded(n.evSeed + 77), Q = CONFIG.quiz, D = quizRules(run), qs = [];
+    var pool = VOCAB.filter(function (v) { return D.tiers.indexOf(quizTier(v[0])) >= 0; });
+    for (var i = 0; i < Q.questions && pool.length >= 1; i++) {
       var ans = pool.splice(Math.floor(R() * pool.length), 1)[0], opts = [ans[0]], others = VOCAB.filter(function (v) { return v[0] !== ans[0]; });
-      while (opts.length < Q.choices) { var w = others[Math.floor(R() * others.length)][0]; if (opts.indexOf(w) < 0) opts.push(w); }
+      while (opts.length < D.choices) { var w = others[Math.floor(R() * others.length)][0]; if (opts.indexOf(w) < 0) opts.push(w); }
       for (var k = opts.length - 1; k > 0; k--) { var j = Math.floor(R() * (k + 1)), t = opts[k]; opts[k] = opts[j]; opts[j] = t; }
       qs.push({ def: ans[1], answer: ans[0], options: opts, picked: null });
     }
@@ -882,7 +889,7 @@
   }
   function answerQuiz(run, choice) {
     var z = run.quiz, q = z.qs[z.i]; if (!q) return null;
-    q.picked = choice; var ok = choice === q.answer; if (ok) z.right++; else run.hp = Math.max(1, run.hp - CONFIG.quizWrongHp);   // wrong answers sting (playtest: the quiz was free)
+    q.picked = choice; var ok = choice === q.answer; if (ok) z.right++; else run.hp = Math.max(1, run.hp - quizRules(run).wrongHp);   // wrong answers sting (playtest: the quiz was free)
     z.i++;
     return { correct: ok, answer: q.answer, done: z.i >= z.qs.length };
   }
@@ -1589,7 +1596,7 @@
   }
 
   var API = {
-    skipRoom: skipRoom, giveUp: giveUp, foePower: foePower, foeWordPoints: foeWordPoints, resolveBust: resolveBust, startTutorial: startTutorial, TUTORIAL: TUTORIAL, WORD_TESTS: WORD_TESTS, thornReady: thornReady,
+    skipRoom: skipRoom, quizRules: quizRules, giveUp: giveUp, foePower: foePower, foeWordPoints: foeWordPoints, resolveBust: resolveBust, startTutorial: startTutorial, TUTORIAL: TUTORIAL, WORD_TESTS: WORD_TESTS, thornReady: thornReady,
     CONFIG: CONFIG, LETTER_VALUE: LETTER_VALUE, PATRONS: PATRONS, RELICS: RELICS, sellPrice: sellPrice, CHARMS: CHARMS, SIGILS: SIGILS, UPGRADES: UPGRADES, CURSES: CURSES, TRAITS: TRAITS,
     ROOMS: ROOMS, EVENTS: EVENTS, RARITY: RARITY, RARITIES: RARITIES,
     loadDictionary: loadDictionary, loadVocab: loadVocab, isWord: isWord, wordsFrom: wordsFrom, hasAnyWord: hasAnyWord, scoreWord: scoreWord,

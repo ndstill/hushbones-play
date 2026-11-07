@@ -1281,7 +1281,7 @@ let quizTimer = null, quizLock = false;
 function quizIntro() {
   showOverlay(`<div style="display:flex;justify-content:center">${medalHTML("exam:venn").replace('class="medal', 'style="width:96px;height:96px" class="medal')}</div><h2>Vocabulary Quiz</h2><div class="logo-sub">Professor Venn's Etymology class</div>
     <p class="quip">\u201CA bonespeaker who doesn't know what a word means is just a very lucky shouter. ${C.quiz.questions} definitions. Choose the word.\u201D</p>
-    <p class="small">Two right answers: +1 coin. A wrong answer costs ${C.quizWrongHp} HP. A perfect score earns a reward. Take your time.</p>
+    <p class="small">Two right answers: +1 coin. A wrong answer costs ${LF.quizRules(run).wrongHp} HP. A perfect score earns a reward. Take your time.</p>
     <button class="big btn-gold" data-act="quizgo">Begin</button>
     <button class="big btn-dark" data-act="skiproom" style="height:44px;font-size:14px">Skip</button>`);
 }

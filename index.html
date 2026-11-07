@@ -629,7 +629,7 @@
   .mapsheet .mnode.boss img, .mapsheet .mnode.boss .ph { width: 70px; height: 70px; }
   .mapsheet .mnode .tag { right: -5px; bottom: -3px; width: 22px; height: 22px; background: #2a0a10; box-shadow: 0 0 0 1.5px #d0402e; display: flex; align-items: center; justify-content: center; }
   .mapsheet .mnode .tag img { width: 16px; height: 16px; }
-  .mapsheet .mnode.ahead, .mapsheet .mnode.past { opacity: .62; }
+  .mapsheet .mnode.ahead, .mapsheet .mnode.past { opacity: .45; filter: saturate(.4); }   /* playtest: locked rooms looked tappable */
   .mapsheet .mnode.past { filter: grayscale(.85) brightness(.9); opacity: .5; }
   .mapsheet .mnode.done { opacity: .9; filter: grayscale(.4); --rim: #d9a640; }
   .mapsheet .mnode.done::after { content: "\2713"; position: absolute; left: -4px; top: -4px; width: 20px; height: 20px; border-radius: 50%; background: #d9a640; color: #24140a; font: 900 12px/20px Merriweather; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.6); }
@@ -1227,7 +1227,7 @@ function showMap(viewOnly) {
     const hidden = /^traitor:/.test(n.foe), mystery = MYSTERY.has(n.type);
     const face = mystery ? `<b class="qmark">?</b>` : n.type === "boss" ? `<img src="assets/ui/badge_crown.png" alt="">` : `<img src="${ROOM_ICON(n.type)}" alt="">`;
     const label = n.type === "boss" ? (hidden ? "Boss: ???" : `Boss: ${fi(n.foe).name}`) : mystery ? "Unknown" : R.name;
-    return `<button class="mnode ${mystery ? "unknown" : n.type} ${viewOnly && st === "reach" ? "ahead" : st}" data-k="${k}" style="left:${x}%;top:${y}px" title="${label}" ${st === "reach" && !viewOnly ? 'data-act="room"' : 'tabindex="-1"'}>${face}${(st === "reach" && !viewOnly) || n.type === "shop" ? `<span class="mlabel">${n.type === "boss" ? "Boss" : mystery ? "?" : n.type === "elite" ? "Elite · gold" : R.name}</span>` : ""}</button>`;
+    return `<button class="mnode ${mystery ? "unknown" : n.type} ${viewOnly && st === "reach" ? "ahead" : st}" data-k="${k}" style="left:${x}%;top:${y}px" title="${label}" ${st === "reach" && !viewOnly ? 'data-act="room"' : !viewOnly && st !== "here" ? 'data-act="lockednode" tabindex="-1"' : 'tabindex="-1"'}>${face}${(st === "reach" && !viewOnly) || n.type === "shop" ? `<span class="mlabel">${n.type === "boss" ? "Boss" : mystery ? "?" : n.type === "elite" ? "Elite · gold" : R.name}</span>` : ""}</button>`;
   }).join("");
   const legend = ["fight", "elite", "unknown", "rest", "shop"].concat(C.acts[run.act - 1].clueRows ? ["clue"] : []).map(t => `<span class="lg-${t}"><i>${t === "unknown" ? `<b class="qmark sm">?</b>` : `<img src="${ROOM_ICON(t)}" alt="">`}</i>${t === "unknown" ? "Unknown: an event, a quiz or a Speed Trial" : LF.ROOMS[t].name}</span>`).join("");
   const A = C.acts[run.act - 1], venue = VENUES[run.act] || "academy";
@@ -1769,6 +1769,7 @@ function submitWord() {
   const dest = G.trial ? "spark" : LF.autoDest(G, sel, aimPick); lastAim = G.trial ? null : computeAim(G); aimPick = null; doSpell(dest);
 }
 // numbers count up (Balatro-style) and pop when they grow
+function setNum(el, to) { if (!el) return; const from = el._v; el._v = to; cancelAnimationFrame(el._raf); el.textContent = fmt(to); if (from != null && to > from) { el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); } }
 function tickTo(el, to) {
   if (!el) return; const from = el._v == null ? to : el._v; el._v = to;
   if (from === to || to < from) { cancelAnimationFrame(el._raf); el.textContent = fmt(to); return; }   // a new turn resets at once; only gains count up
@@ -1832,7 +1833,8 @@ function render(instant) {
     $("incoming").innerHTML = pv.lethal ? `<b class="ok">Finishing blow</b> \u00b7 they fall before they can strike back` : pv.castLoss >= run.hp ? `<b class="ls">They hit −${fmt(pv.castLoss)}: you fall</b>` : pv.castLoss ? `they hit you <b class="ls">−${fmt(pv.castLoss - (pv.reflect || 0))}</b>${pv.reflect ? ` + thorns <b class="ls">−${fmt(pv.reflect)}</b>` : ""}` : `<b class="ok">nothing lands</b>`;
     { const ts = LF.turnScore(G, G.turnWords || []), sp = $("ifcast"); sp.hidden = false;
       if (!$("spTotal")) sp.innerHTML = `<div class="sp-prev" id="spPrev"></div><div class="sp-main"><div class="sp-box chp"><b id="spChips">0</b><span>chips</span></div><i>×</i><div class="sp-box mult"><b id="spMult">1</b><span>mult</span></div><i>=</i><div class="sp-total"><b id="spTotal">0</b><span id="spTotLb">this turn</span></div></div><div class="sp-forms" id="spForms"></div>`;
-      tickTo($("spChips"), ts.chips); tickTo($("spMult"), ts.mult); tickTo($("spTotal"), G.dmg);
+      // GPT playtest: three numbers counting up separately read as impossible sums (10 × 1 = 17). They now change together.
+      setNum($("spChips"), ts.chips); setNum($("spMult"), ts.mult); setNum($("spTotal"), ts.total);
       sp.classList.toggle("lethal", !!pv.lethal); sp.classList.toggle("empty", !G.dmg && !(G.turnWords || []).length);
       $("spTotLb").textContent = pv.lethal ? "lethal" : G.pushPending ? "at stake" : "this turn";
       { const fsum = ts.forms.reduce((a, k) => a + LF.FORMS[k].mult, 0), rest = ts.mult - 1 - fsum - (G.chain || 0) - (G.hotMult || 0);
@@ -2115,6 +2117,7 @@ $("card").addEventListener("click", e => {
   else if (a === "reseed") { $("seedIn").value = LF.randomSeed(); }
   else if (a === "difficulty") { difficulty = t.dataset.d; try { localStorage.setItem("cw_difficulty", difficulty); } catch (e) {} $("diffBox").innerHTML = diffRow(); }
   else if (a === "room") enterRoom(t.dataset.k);
+  else if (a === "lockednode") { toast("Choose a highlighted room connected to where you are."); SFX.play("tick", { rate: .7 }); }
   else if (a === "continue") afterFight();
   else if (a === "leaveroom") { LF.leaveRoom(run); afterFight(); }
   else if (a === "skiproom") { stopPushClock(); LF.skipRoom(run); D3.clearTable(); autosave(); afterFight(); }

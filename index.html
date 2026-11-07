@@ -1444,7 +1444,7 @@ async function doPush() {
   render();
   if (res.wildfire) setMsg("Wildfire! That roll had no word, so the dice were rerolled.", "good");
   else if (res.momentum && (res.momentum.dmg || res.momentum.ward)) { setMsg(`Momentum! Everything banked grows ${Math.round(C.momentum * 100)}%.`, "good"); SFX.bonus(.4, .1); }
-  if (res.seconds) { startPushClock(res.seconds, 0); if (!res.fizzle && !res.wildfire) setMsg(`${res.seconds}s to spell a word. Out of time: half your points are cast.`, "info"); }   // the clock itself freezes until the dice land
+  if (res.seconds) { startPushClock(res.seconds, 0); if (!res.fizzle && !res.wildfire) setMsg(`${res.seconds}s to spell a word. Out of time: the bank is lost.`, "info"); }   // the clock itself freezes until the dice land
   if (res.fizzle) {
     // d: the failed roll lands and stays on the table, FIZZLE shows on it, and only then does the foe's turn resolve.
     busy = true; await sleep(settle + 300);
@@ -1514,8 +1514,8 @@ function timeUp() {
   toast("Time! Your charge is cast."); doCast();
 }
 function showFizzle(out, alreadyShown) {
-  const G = g(); stopPushClock(); $("blocker").hidden = true; if (!alreadyShown) { D3.shakeBust(); SFX.play(out.timeout ? "timeout" : "fizzle"); }
-  showOverlay(`<h2 class="bad">${out.timeout ? "Out of time!" : "Fizzle!"}</h2><p>${out.timeout ? "You didn't spell a word from that roll in time." : "No word on that roll."} ${out.held ? `Hold Fast: half your bank (${fmt(out.held)}) still landed; the rest is lost.` : `This turn's ${fmt(out.lost.dmg)} points are lost.`} Their words land at ${Math.round(C.forms.bustMult * 100)}%.</p>
+  const G = g(); stopPushClock(); $("blocker").hidden = true; if (!alreadyShown) { D3.shakeBust(); SFX.play(out.timeout ? "timeout" : out.gaveUp ? "thud" : "fizzle"); }
+  showOverlay(`<h2 class="bad">${out.gaveUp ? "You gave up the roll" : out.timeout ? "Out of time!" : "Fizzle!"}</h2><p>${out.gaveUp ? "You let that roll go." : out.timeout ? "You didn't spell a word from that roll in time." : "No word on that roll."} ${out.held ? `Hold Fast: half your bank (${fmt(out.held)}) still landed; the rest is lost.` : `This turn's ${fmt(out.lost.dmg)} points are lost.`} ${out.gaveUp ? "Their words land as shown." : `Their words land at ${Math.round(C.forms.bustMult * 100)}%.`}</p>
     ${out.gluttonHeal ? `<p class="small">Glutton: ${G.enemy.name} heals ${fmt(out.gluttonHeal)}.</p>` : ""}
     <p>${G.enemy.name} still casts:</p>${logHTML(out)}
     <button class="big btn-wine" data-act="fizzleok">Take the hit</button>`);
@@ -1526,7 +1526,7 @@ async function doCast() {
   const G = g(); if (!G || busy || G.phase !== "spell") return;
   if (G.trial) { if (G.trialEnd) endTrial(); return; }
   if (G.tutorial) { const hint = tutorBlocks(G, "cast"); if (hint) { toast(hint); return; } }
-  if (G.pushPending) { sel = []; const fo = LF.cast(G); if (fo) showFizzle(fo); return; }
+  if (G.pushPending) { sel = []; const fo = LF.giveUp(G); if (fo) showFizzle(fo); return; }
   sel = []; busy = true;
   const out = LF.cast(G);
   SFX.play("cast"); flash("CAST!");
@@ -1807,7 +1807,7 @@ function render(instant) {
     if (e.trait) $("enemyName").innerHTML += ` <span class="trait">${LF.TRAITS[e.trait].name}${G.banned ? ": no " + G.banned.toUpperCase() : ""}</span>`;
     const left = e.turns - G.round + 1, total = e.turns;
     clock.className = "r" + (left <= 0 ? " rage" : "");
-    clock.innerHTML = left > 0 ? "◆".repeat(left) + "◇".repeat(Math.max(0, Math.min(3, total) - left)) : `ENRAGED ×${Math.pow(C.enrageGrowth, G.round - e.turns).toFixed(2)}`;
+    clock.innerHTML = left > 0 ? "◆".repeat(left) + "◇".repeat(Math.max(0, Math.min(3, total) - left)) : `ENRAGED ×${Math.min(C.enrageCap, Math.pow(C.enrageGrowth, G.round - e.turns)).toFixed(1)}`;
     if (instant) { $("enemyGhost").style.transition = "none"; $("youGhost").style.transition = "none"; }
     setBar("enemyBar", "enemyGhost", "enemyHp", G.enemyHp, G.enemyMax);
     { const bite = Math.max(0, Math.min(G.enemyHp, (G.dmg || 0) - (G.guard || 0))), b = $("enemyBite");   // UI v3: banked Attack previewed on the foe's bar
@@ -1957,7 +1957,7 @@ function coachStep(G, hasWord) {
   let t = "";
   if (G.phase === "spell" && !G.trial) {
     const m = metaFlags;
-    if (G.pushPending) { if (!m.speedTip) { t = "Spell a word from the new dice before the clock runs out. Out of time, half your points are cast; <b>Give up</b> loses them all."; m.speedTipShown = true; } }
+    if (G.pushPending) { if (!m.speedTip) { t = "Spell a word from the new dice before the clock runs out. Out of time, the bank is lost and their words land at 150%; <b>Give up</b> loses the bank but they hit normally."; m.speedTipShown = true; } }
     else if (C.inlay.enabled && !m.colourTip && G.dice.some(d => d.state === "pool" && run.dice[d.id] && run.dice[d.id].inlay)) { t = `Coloured letters add Mult: a <b style='color:#ff6b57'>red</b> letter in a word you HIT +${C.inlay.multRed}.`; m.colourTipShown = true; }
     else if (!m.omenTip && G.omens && Object.keys(G.omens).length) { const bad = Object.values(G.omens).some(o => !LF.OMENS[o].good); t = bad ? "A <b>marked die</b>: skull −HP, ½ halves the word, blood drop drains you. Tap a die to read its mark. Roll it again to clear it." : "A <b>marked die</b>: gold letter = triple value, coin = +coins, green cross = heal, if you use it."; m.omenTipShown = true; }
     else if (!m.sigilTip && run.sigils.length && G.round === 1 && !G.words.length) { t = "You carry a sigil: tap its badge by the dice to use it this turn."; m.sigilTipShown = true; }
@@ -2003,7 +2003,7 @@ function rulesHTML() {
     <li><b>Cast</b> ends your turn: your score hits (their Block soaks it first), then every word of theirs you didn't stop hits you. Even a finishing cast takes their words, but never drops you below 1 HP.</li>
     <li><b>The clock:</b> after a roll again you have a few seconds to spell; run out and the bank is cast with no Chain.</li>
     <li><b>Wrong words backfire:</b> −${C.wrongWordPenalties.join(", then −")} HP in a row. A real word resets it.</li>
-    <li><b>Enrage:</b> after its pips (\u25C6) run out, the foe's words grow \u00D7${C.enrageGrowth} each round.</li>
+    <li><b>Enrage:</b> after its pips (\u25C6) run out, the foe's words grow \u00D7${C.enrageGrowth} each round, up to \u00D7${C.enrageCap}.</li>
     <li><b>After every duel</b> choose 1 of 3 rewards (one is always a <b>Carve</b>: change a face on a die to a new letter; the others are charms from the professors, sigils, dice work, mending, or a rare relic) or take ${C.skipCoins} coins. Winning doesn't heal you (unless you're in Hollowmere): Rest, Mend, Vitality and each new act (+50%) do.</li>
     <li><b>Difficulty:</b> on <b>Easy</b> you have three strikes: lose a duel and retry the room as you entered it, with fresh dice. On <b>Normal</b> you have one life. <b>Hard</b> is for word experts.</li>
     <li><b>Year One:</b> three acts. Act I: students, then your exam. Act II: the Lowmarket under Fairgate. Act III: the Awakening and the traitor professor (clues hide in Unknown rooms).</li>
@@ -2043,7 +2043,7 @@ function showIntentDetail() {
     ${e.trait ? `<p class="small"><span class="trait">${LF.TRAITS[e.trait].name}:</span> ${LF.TRAITS[e.trait].desc}</p>` : ""}
     <p class="small" style="${C.omens.enabled ? "" : "display:none"}">Marked dice: gold letter = triple value · coin = +${C.omens.coin} coins · green cross = heal ${C.omens.mend} · skull = −${C.omens.cursed} HP · ½ = word worth half · blood drop = ${Math.round(C.omens.leechPct * 100)}% of your HP drains to the foe.</p>
     <p class="small">⚠ = heavy blow (double damage, every third round) · ✴ = thorns (hits you back when you attack) · ♦ = leech (heals it). Your Defense is used up row by row, top to bottom.</p>
-    <p class="small">Enrages after round ${e.turns}; then its words grow \u00D7${C.enrageGrowth} each round.${G.frayLeft > 0 ? " You can Fray one attack word: tap its chip." : ""}</p>
+    <p class="small">Enrages after round ${e.turns}; then its words grow \u00D7${C.enrageGrowth} each round (up to \u00D7${C.enrageCap}).${G.frayLeft > 0 ? " You can Fray one attack word: tap its chip." : ""}</p>
     <button class="big btn-dark" data-act="close">Back</button>`);
 }
 function soundRow() {

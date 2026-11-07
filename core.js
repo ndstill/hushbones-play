@@ -104,7 +104,7 @@
       elite:   [[0.7, 0.6, 0.5], [0.6, 0.5, 0.5, 0.4], [0.9, 0.7]],
       boss:    [[0.7, 0.6, 0.5], [0.6, 0.5, 0.5, 0.4], [0.9, 0.7, 0.4], [0.6, 0.6, 0.6, 0.5]],
     },
-    enrageGrowth: 1.25,          // attack values ×1.25 per round past a foe's clock (rounded down per row)
+    enrageGrowth: 1.1, enrageCap: 1.6,   // d, 2026-11-07: "ease the enrage ramp" (was ×1.25 a round, uncapped: ×6 by round 10)
     thornsReflect: 0.25,         // Thorns rows reflect this × atk when you cast damage and it survives
     guardMult: 1.5,              // Warded: WARD rows grant this × atk Guard
     gluttonHeal: 0.15,
@@ -164,7 +164,7 @@
     hpPerRow: 0.06,   // 11 rows an act now (was 0.08 over 8)
     earlyEase: { hp: 0.75, atk: 0.85 },
     firstDuel: { hp: 0.35, atk: 0.7 },   // d: "make that first lower the hitpoints" (Act I row 1; playtest: ~2,200 HP was the wall)   // d: the first third of each act is a bit easier (playtest: the first duel was the wall)
-    foeHpScale: 0.7, foeAtkScale: 1.15,   // d, 2026-11-07: foe HP on your scale (Chips ×3), bigger hits, more blocks: expert bot 54% runs won, ~3 rounds a duel
+    foeHpScale: 0.75, foeAtkScale: 1.15,   // 2026-11-07, eased enrage: expert bot ~52% runs won (0.7 gave 61%, 0.8 44%)
     elite: { hp: 1.0, atk: 1.1 },
     boss: { hp: 1.0, atk: 1.15 },
     roleHp: { student: 1.7, villain: 1.5, prefect: 1.0, elite: 1.0, boss: 1.0 },   // ordinary foes were pushovers next to elites (expert-bot calibration)   // playtest round 5: bosses died in two rounds
@@ -1125,7 +1125,7 @@
   // ---- the foe's intent for this round: an ordered list of word-spells ----
   function foeWordPoints(w) { w = String(w).toLowerCase().replace(/[^a-z]/g, ""); var sum = 0; for (var i = 0; i < w.length; i++) sum += LETTER_VALUE[w[i]] || 0; return Math.round(sum * (CONFIG.chipLen[Math.min(w.length, 9)] || 1)); }
   function foePower(g) { return Math.max(1, Math.round(g.enemy.atk * enrageMult(g) / CONFIG.foeWordNorm)); }   // damage per letter point
-  function enrageMult(g) { if (g.enemy.noEnrage) return 1; var over = g.round - g.enemy.turns; return over > 0 ? Math.pow(CONFIG.enrageGrowth, over) : 1; }
+  function enrageMult(g) { if (g.enemy.noEnrage) return 1; var over = g.round - g.enemy.turns; return over > 0 ? Math.min(CONFIG.enrageCap, Math.pow(CONFIG.enrageGrowth, over)) : 1; }
   function makeIntent(g) {
     if (g.tutorial) return clone(TUTORIAL.intent[g.round - 1] || TUTORIAL.intent[TUTORIAL.intent.length - 1]);
     var e = g.enemy, P = CONFIG.patterns[e.role] || CONFIG.patterns.villain, pat = P[(g.round - 1) % P.length];
@@ -1440,6 +1440,13 @@
     g.pushPending = false; g.clockLevel = null;
     var out = fizzle(g); out.timeout = true; return out;
   }
+  // d: "fix the give up". Giving up on a roll loses the bank but isn't a bust: their words land at normal strength.
+  function giveUp(g) {
+    if (!g.pushPending || g.phase !== "spell") return null;
+    g.pushPending = false; g.clockLevel = null;
+    var lost = { dmg: g.dmg, ward: g.ward }; g.dmg = 0; g.ward = 0; g.turnWords = []; g.chain = 0; g.hotMult = 0; g.bonusChips = 0;
+    var out = enemyTurn(g, 0, true); out.gaveUp = true; out.fizzle = true; out.lost = lost; return out;
+  }
   function fizzle(g) {
     var lost = { dmg: g.dmg, ward: g.ward }, held = 0;
     var hf = g.run.sigils.indexOf("holdfast");
@@ -1582,7 +1589,7 @@
   }
 
   var API = {
-    skipRoom: skipRoom, foePower: foePower, foeWordPoints: foeWordPoints, resolveBust: resolveBust, startTutorial: startTutorial, TUTORIAL: TUTORIAL, WORD_TESTS: WORD_TESTS, thornReady: thornReady,
+    skipRoom: skipRoom, giveUp: giveUp, foePower: foePower, foeWordPoints: foeWordPoints, resolveBust: resolveBust, startTutorial: startTutorial, TUTORIAL: TUTORIAL, WORD_TESTS: WORD_TESTS, thornReady: thornReady,
     CONFIG: CONFIG, LETTER_VALUE: LETTER_VALUE, PATRONS: PATRONS, RELICS: RELICS, sellPrice: sellPrice, CHARMS: CHARMS, SIGILS: SIGILS, UPGRADES: UPGRADES, CURSES: CURSES, TRAITS: TRAITS,
     ROOMS: ROOMS, EVENTS: EVENTS, RARITY: RARITY, RARITIES: RARITIES,
     loadDictionary: loadDictionary, loadVocab: loadVocab, isWord: isWord, wordsFrom: wordsFrom, hasAnyWord: hasAnyWord, scoreWord: scoreWord,

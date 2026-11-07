@@ -178,11 +178,7 @@ function drawFace(ctx, key, face, override, echo, ageSeed, material, omen) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
   if (f.mirror) ctx.scale(-1, 1);
-  if (face.gild) {
-    const g = ctx.createRadialGradient(0, 0, w * 0.05, 0, 0, w * 0.62);
-    g.addColorStop(0, "rgba(255,226,130,.85)"); g.addColorStop(1, "rgba(214,150,40,.6)");
-    ctx.fillStyle = g; ctx.fillRect(-w / 2, -h / 2, w, h);
-  }
+  // d: a gilded face is just a gold letter (the gold face looked like a selected die)
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   if (l === "*") {
     ctx.font = `900 ${w * 0.6}px Merriweather, Georgia, serif`;
@@ -191,9 +187,9 @@ function drawFace(ctx, key, face, override, echo, ageSeed, material, omen) {
     const L = l.toUpperCase();
     ctx.font = `900 ${w * 0.56}px Merriweather, Georgia, serif`;
     ctx.fillStyle = "rgba(255,248,230,.6)"; ctx.fillText(L, w * 0.012, h * 0.045 + w * 0.014); // carved highlight
-    const IN = omen === "gilded" ? { ink: "#d9a514", glow: "rgba(255,210,80,.95)" } : INLAY_INK[face.inlay];
+    const IN = omen === "gilded" || (face.gild && !face.inlay) ? { ink: "#d9a514", glow: "rgba(255,210,80,.95)" } : INLAY_INK[face.inlay];
     if (IN) { ctx.save(); ctx.shadowColor = IN.glow; ctx.shadowBlur = w * 0.06; ctx.fillStyle = IN.ink; ctx.fillText(L, 0, h * 0.045); ctx.restore(); }   // inlaid letter (d: red/blue inlays)
-    else { ctx.fillStyle = face.gild ? "#5a3300" : (F && F.letters) || "#2b1a0e"; ctx.fillText(L, 0, h * 0.045); }
+    else { ctx.fillStyle = (F && F.letters) || "#2b1a0e"; ctx.fillText(L, 0, h * 0.045); }
     ctx.font = `700 ${w * 0.15}px Merriweather, Georgia, serif`;
     ctx.fillStyle = F && F.letters ? "rgba(239,226,196,.7)" : "rgba(43,26,14,.72)"; ctx.fillText(String(LETTER_VALUE[l] || 0), w * 0.31, h * 0.32);
   }

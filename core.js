@@ -379,7 +379,9 @@
     ladder:   { name: "Ladder",   mult: 3, desc: "2+ words in a turn, each longer than the last", turn: true },
     echo:     { name: "Echo",     mult: 2, desc: "two words in a turn that start with the same letter", turn: true },
   };
-  Object.keys(FORMS).forEach(function (k) { var F = FORMS[k]; RELICS[k] = { name: F.name, icon: RELIC_ICONS[k] || "star", price: 10, desc: "Relic: " + F.desc + " adds +" + F.mult + " Mult (once a turn)." }; });
+  // Playtest: relics named just "Rare" and "Long" read as labels. Each gets a name; the desc says which bonus it unlocks.
+  var RELIC_NAMES = { long: "The Long Quill", pair: "Twin Bone", open: "Open Throat", rare: "Rare Ink", plural: "The Many", bookends: "Bookend Clasp", ladder: "Ladder Bone", echo: "Echo Shell" };
+  Object.keys(FORMS).forEach(function (k) { var F = FORMS[k]; RELICS[k] = { name: RELIC_NAMES[k] || F.name, form: F.name, icon: RELIC_ICONS[k] || "star", price: 10, desc: F.name + " bonus: " + F.desc + " adds +" + F.mult + " Mult (once a turn)." }; });
   function formsOn(g) { return !g.trial; }
   function wordChips(g, w, faces) {   // letter values (gild, Kindling) ×10; length only matters through Forms
     var sum = 0, run = g.run;

@@ -151,7 +151,7 @@
   .flash.neg { color: var(--bad); text-shadow: 0 4px 0 rgba(0,0,0,.5), 0 0 30px rgba(255,80,60,.8); }
   .flash.go { animation: flash 1.1s ease-out; }
   @keyframes flash { 0% { opacity: 0; transform: scale(.6); } 20% { opacity: 1; transform: scale(1.1); } 70% { opacity: 1; } 100% { opacity: 0; transform: scale(1); } }
-  .toast { position: fixed; left: 50%; bottom: 30%; transform: translateX(-50%); z-index: 25; width: max-content; max-width: 320px; padding: 4px 8px; text-align: center; font: 500 15px Alegreya; pointer-events: none; opacity: 0; transition: opacity .2s; }
+  .toast { position: fixed; left: 50%; top: 27%; transform: translateX(-50%); z-index: 25; width: max-content; max-width: 320px; padding: 4px 8px; text-align: center; font: 500 15px Alegreya; pointer-events: none; opacity: 0; transition: opacity .2s; }
   .toast.on { opacity: 1; }
 
   .ov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px;
@@ -821,8 +821,8 @@
   .fm.red { border-color: rgba(255,107,87,.7); color: #ffd8d0; background: rgba(140,30,24,.45); } .fm.red b { color: #fff; }
   .sp-forms .pl { font: 900 13px Merriweather; color: var(--gold); font-style: normal; align-self: center; }
   .sp-forms .eq { font: 900 13px Merriweather; color: var(--gold-hi); font-style: normal; align-self: center; margin-left: 2px; white-space: nowrap; }
-  .sp-prev { height: 0; overflow: hidden; text-align: center; font: 700 13px Alegreya; color: var(--dim); transition: height .15s; }
-  .sp-prev.on { height: 20px; line-height: 20px; margin-bottom: 2px; }
+  .sp-prev { height: 20px; line-height: 20px; margin-bottom: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; font: 700 13px Alegreya; color: var(--dim); opacity: 0; transition: opacity .15s; }   /* always holds its row: no clipping or layout jump */
+  .sp-prev.on { opacity: 1; }
   .sp-prev b { font: 900 13px Merriweather; color: var(--cream); } .sp-prev b.t { color: var(--gold-hi); } .sp-prev span { color: #b8f08c; font-weight: 700; }
   #incoming { white-space: normal; text-align: right; font-size: 13px; line-height: 1.2; }
   .ringTime small { display: block; margin-top: -2px; font: italic 700 11px Alegreya; color: var(--dim); text-align: center; }
@@ -1135,7 +1135,7 @@ function tutorStep(G) {
 }
 const TUTOR_TEXT = {
   cats: "Tap <b>C A T S</b> to spell CATS, then tap <b>SUBMIT</b>. Words of 4+ letters hit Tamsin.",
-  dog: "CATS scores <b>Chips × Mult</b>: its letters are worth 60 Chips (longer words multiply them). Tamsin is casting SLASH and JAB at you. Spell <b>DOG</b>: a 3-letter word <b>cancels</b> her biggest word.",
+  dog: `CATS scores <b>Chips × Mult</b>: its letters are worth ${6 * C.forms.chipScale} Chips (longer words multiply them). Tamsin is casting SLASH and JAB at you. Spell <b>DOG</b>: a 3-letter word <b>cancels</b> her biggest word.`,
   ax: "SLASH is cancelled. A 2-letter word <b>halves</b> one of her words. Spell <b>AX</b> to halve JAB.",
   cast: "You used every die: <b>All Speak</b>, +1 Mult. Tap <b>CAST</b> to hit her with your total. Words you didn't stop hit you back.",
   stone: "A new round, with fresh dice. Spell <b>STONE</b>.",
@@ -1384,7 +1384,7 @@ function throwPool(full) {
 function doSpell(dest) {
   const G = g(); if (!G || !sel.length || busy || G.phase !== "spell") return;
   G.rollConfirm = false;
-  if (G.tutorial) { const hint = tutorBlocks(G, "spell", sel.map(id => G.dice[id].letter).join("")); if (hint) { toast(hint); sel = []; render(); return; } }
+  if (G.tutorial) { const hint = tutorBlocks(G, "spell", sel.map(id => G.dice[id].letter).join("")); if (hint) { setMsg(hint, "bad"); SFX.play("tick", { rate: .7 }); sel = []; render(); return; } }
   const r = LF.playWord(G, sel.slice(), dest, pushFrac());
   if (r.refused) {   // HUSH with the Eighth's own bones: "Not twice."
     sel = []; SFX.play("heavyhurt", { rate: .6, vol: .7 }); SFX.play("tick", { delay: .4, rate: .5 });
@@ -1432,7 +1432,7 @@ function doSpell(dest) {
 async function doPush() {
   const G = g(); if (!G || busy) return;
   if (G.trial) { if (G.trialEnd) trialReroll(); return; }
-  if (G.tutorial) { const hint = tutorBlocks(G, "roll"); if (hint) { toast(hint); return; } }
+  if (G.tutorial) { const hint = tutorBlocks(G, "roll"); if (hint) { setMsg(hint, "bad"); return; } }
   if (!LF.canPush(G)) { toast(LF.pushBlockReason(G)); return; }
   if (!G.tutorial) { const p = LF.bustChance(G) || 0, bank = G.dmg + G.ward;   // risky rolls ask once (playtest: a 73% bust took a 453 bank with no warning)
     if (p >= 0.4 && bank > 0 && !G.rollConfirm) { G.rollConfirm = true; setMsg(`${bustLabel(p)} chance of no word. Tap Roll again to risk ${fmt(bank)}.`, "bad"); SFX.play("tick", { rate: .7 }); render(); return; } }
@@ -1525,7 +1525,7 @@ let pendingTurn = null;
 async function doCast() {
   const G = g(); if (!G || busy || G.phase !== "spell") return;
   if (G.trial) { if (G.trialEnd) endTrial(); return; }
-  if (G.tutorial) { const hint = tutorBlocks(G, "cast"); if (hint) { toast(hint); return; } }
+  if (G.tutorial) { const hint = tutorBlocks(G, "cast"); if (hint) { setMsg(hint, "bad"); return; } }
   if (G.pushPending) { sel = []; const fo = LF.giveUp(G); if (fo) showFizzle(fo); return; }
   sel = []; busy = true;
   const out = LF.cast(G);
@@ -1678,9 +1678,10 @@ function shopHTML() {
     <div class="offers">${s.offers.map((o, i) => `<div class="offer panel r-${o.rarity || "common"} ${o.sold ? "sold" : ""}">
       <div class="kind">${kindName[o.kind]} · <span class="rar ${o.rarity || "common"}">${LF.RARITY[o.rarity || "common"].name}</span>${patronTag(o)}</div><img src="${icon(o.icon)}" alt=""><div class="nm">${o.name}</div><div class="ds">${o.desc}</div>
       <button class="btn-gold" data-act="buy" data-i="${i}" ${o.sold || run.coins < o.price ? "disabled" : ""}>${o.sold ? "Sold" : `<img src="assets/ui/coin.png" alt="">${o.price}`}</button></div>`).join("")}</div>
-    <p class="small">Charms ${run.charms.length}/${LF.maxCharms(run)} · Sigils ${run.sigils.length}/${C.maxSigils} · ${run.dice.length} dice</p>
+    <p class="small">Charms ${run.charms.length}/${LF.maxCharms(run)} · Sigils ${run.sigils.length}/${C.maxSigils}${(run.relics || []).length ? ` · Relics ${run.relics.length}` : ""} · ${run.dice.length} dice</p>
     <div class="owned">${run.charms.map(c => `<span class="o"><img src="${icon(LF.CHARMS[c].icon)}" alt="">${LF.CHARMS[c].name}<button data-act="sell" data-id="${c}">sell ${LF.sellPrice(run, c)}</button></span>`).join("")}
-      ${run.sigils.map(sg => `<span class="o"><img src="${icon(LF.SIGILS[sg].icon)}" alt="">${LF.SIGILS[sg].name}</span>`).join("")}</div>
+      ${run.sigils.map(sg => `<span class="o"><img src="${icon(LF.SIGILS[sg].icon)}" alt="">${LF.SIGILS[sg].name}</span>`).join("")}
+      ${(run.relics || []).map(k => `<span class="o"><img src="${icon(LF.RELICS[k].icon)}" alt="">${LF.RELICS[k].name}</span>`).join("")}</div>
     <div class="row2"><button class="big btn-dark" data-act="reroll" ${run.coins < s.rerollCost ? "disabled" : ""}>Reroll: ${s.rerollCost} coin${s.rerollCost === 1 ? "" : "s"}</button>
       <button class="big btn-dark" data-act="leave">Back to the map</button></div>
     <p class="small"><a href="#" data-act="viewdice" style="color:var(--dim)">View your dice</a></p></div>`;
@@ -1755,7 +1756,7 @@ function computeAim(G) {
   }
   const w = raw.replace(/\*/g, "e"), fc = sel.map(id => G.dice[id].face);
   const t = LF.turnScore(G2, (G.turnWords || []).concat([{ word: w, chips: LF.wordChips(G, w, fc), dest: "face", red: fc.some(f => f && f.inlay === "red") }]));
-  return { idx, n, hb, after: t, gain: t.total - G.dmg, role: "hit", verb: "hits", val: "+" + fmt(t.total - G.dmg), target: G.enemy.name + (hb ? ` \u00b7 All Speak +${hb}` : ""), dest, newForms: t.forms.filter(k => !base.forms.includes(k)) };
+  return { idx, n, hb, after: t, gain: t.total - G.dmg, role: "hit", verb: "hits", val: "+" + fmt(t.total - G.dmg), target: G.enemy.name.split(" ").pop() + (hb ? ` \u00b7 All Speak +${hb}` : ""), dest, newForms: t.forms.filter(k => !base.forms.includes(k)) };
 }
 // which foe words this word could legally be aimed at (for the soft glow on alternatives)
 function legalTargets(G) {
@@ -2194,7 +2195,7 @@ $("loading").remove();
 D3.setRollMode(rollMode);
 let lastBand = "";
 function updateBand() {
-  const br = $("band").getBoundingClientRect(), top = Math.round(br.top + 4), bottom = Math.round($("youPlate").getBoundingClientRect().top - 4);
+  const tut = g() && g().tutorial, br = $("band").getBoundingClientRect(), top = Math.round(br.top + 4), bottom = Math.round($("youPlate").getBoundingClientRect().top - 4 - (tut ? 78 : 0));   // the practice tip stays up, so the dice sit above it
   const k = top + ":" + bottom; if (k === lastBand) return; lastBand = k;
   D3.setBand(top, bottom);
 }

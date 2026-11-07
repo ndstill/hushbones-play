@@ -965,7 +965,7 @@ function recordRun() {
   const entry = LF.leaderboardEntry(run); entry.date = new Date().toISOString().slice(0, 10);
   const res = LF.addToBoard(getBoard(), entry, 10);
   try { localStorage.setItem("hb_board", JSON.stringify(res.board)); } catch (e) {}
-  const m = getMeta(), earned = Math.floor(entry.score / 1000); m.echoes += earned; saveMeta(m); res.echoes = earned;
+  const m = getMeta(), earned = LF.echoesEarned(run); m.echoes += earned; saveMeta(m); res.echoes = earned;
   if (res.rank === 0) SFX.jackpot(.3); else if (res.rank > 0) SFX.bonus(.6, .3);
   return { entry, rank: res.rank, board: res.board, echoes: res.echoes };
 }
@@ -991,7 +991,7 @@ function casebookHTML() {
 }
 function echoesHTML() {
   const m = getMeta();
-  return `<h2>Echoes</h2><p class="small">You earn 1 Echo per 1,000 points at the end of every run. They buy lasting starts and finishes, not raw power.</p>
+  return `<h2>Echoes</h2><p class="small">Earn Echoes by beating elites (+${C.echoes.elite}), act bosses (+${C.echoes.boss}) and finishing Year One (+${C.echoes.yearWon}). They buy lasting starts and finishes, not raw power.</p>
     <p style="color:#d9b8ff"><b>${m.echoes} Echo${m.echoes === 1 ? "" : "es"}</b></p>
     <div class="unlocks">${Object.entries(UNLOCKS).map(([k, U]) => {
       const own = m.unlocks[k];
@@ -1046,7 +1046,7 @@ function worldState() { const m = getMeta(); return { ending: m.ending, bones: m
 const UNLOCKS = {
   headStart:  { name: "Head Start",        cost: 6,  desc: "Begin every run with 10 extra coins." },
   sigilPouch: { name: "Sigil Pouch",       cost: 8,  desc: "Begin every run with a random sigil." },
-  library:    { name: "The Old Library",   cost: 10, desc: "Two new charms join the pool: Second Breath (+5s on every push clock) and Old Ink (+1 Lore per win)." },
+  library:    { name: "The Old Library",   cost: 10, desc: "Relics turn up twice as often." },
   fourthSlot: { name: "Fourth Charm Slot", cost: 15, desc: "Carry five charms instead of four." },
   finish_ink: { name: "Ink-Black Finish",  cost: 5,  desc: "Dice finish: dark bone with pale letters.", finish: "ink" },
   finish_gilt:{ name: "Gilded Finish",     cost: 5,  desc: "Dice finish: old gold leaf.", finish: "gilt" },
@@ -2145,7 +2145,13 @@ $("card").addEventListener("click", e => {
   else if (a === "viewdice") showOverlay(editorHTML(null));
   else if (a === "viewmap") { if (run.state === "map") { beforeRules = null; showMap(); } else showMap(true); }
   else if (a === "rules") showOverlay(rulesHTML());
-  else if (a === "closedice" || a === "cancelpick") { if (restLetter) { restLetter = null; showRest(); } else if (beforeRules) { const b = beforeRules; beforeRules = null; showOverlay(b); } else if (run.state === "map") showMap(); else if (pendingReward != null) { pendingReward = null; showRewardCards(); } else { pendingBuy = null; openShop(); } }
+  else if (a === "closedice" || a === "cancelpick") { if (restLetter) { restLetter = null; showRest(); } else if (beforeRules) { const b = beforeRules; beforeRules = null; showOverlay(b); } else if (pendingReward != null) { pendingReward = null; showRewardCards(); }
+    else if (pendingBuy != null && run.shop) { pendingBuy = null; openShop(); }
+    else if (run.state === "fight" || run.state === "trial") { hideOverlay(); render(); }   // d: Back out of Your dice mid-duel (it fell through to the shop and stuck)
+    else if (run.state === "reward" && run.reward) showRewardCards();
+    else if (run.state === "shop" && run.shop) openShop();
+    else if (run.state === "rest") showRest();
+    else showMap(); }
   else if (a === "pickface") pickFace(+t.dataset.d, +t.dataset.f);
   else if (a === "newrun") { beforeRules = null; clearSave(); newRun(); }
   else if (a === "savequit") { autosave(); beforeRules = null; stopPushClock(); newRun(); }

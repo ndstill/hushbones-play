@@ -176,7 +176,8 @@
     seedChars: "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
     maxCharms: 4, maxSigils: 3,
     shopOffers: 4, rerollCost: 6,
-    relicChance: { elite: 0.25, pick: 0.03, shop: 0.15 },   // bosses always offer one (d: relics are rare)
+    echoes: { elite: 1, boss: 2, yearWon: 3 },
+    relicChance: { elite: 0.25, pick: 0.03, shop: 0.15 }, libraryRelics: 2,   // the Old Library unlock doubles relic chances   // bosses always offer one (d: relics are rare)
     DICE: [
       "AEIOUA", "AEIOUE", "EEAOIY",
       "RSTLNE", "STRNDL", "TSRLDO",
@@ -564,6 +565,9 @@
     var D = CONFIG.difficulties[run.difficulty] || {};
     return Math.round(s * (D.score || (run.difficulty === "normal" ? 1.5 : 1)) * (1 + 0.1 * ((run.year || 1) - 1)));
   }
+  // d, 2026-11-07: "echoes need to be tuned to make them harder to achieve". Echoes come from milestones only (was score ÷ 1,000):
+  // +1 per elite, +2 per act boss, +3 for finishing Year One. A run that ends early pays nothing for its score.
+  function echoesEarned(run) { return (run.elitesBeaten || 0) * CONFIG.echoes.elite + (run.bossesBeaten || 0) * CONFIG.echoes.boss + (run.state === "won" ? CONFIG.echoes.yearWon : 0); }
   function leaderboardEntry(run) {
     var won = run.state === "won", A = CONFIG.acts[(run.act || 1) - 1];
     return { score: runScore(run), seed: run.seed, house: run.house, difficulty: run.difficulty,
@@ -825,7 +829,7 @@
       if (run.strikes > 0) { run.state = "retry"; return { won: false, retry: true, strikes: run.strikes }; }
       run.state = "lost"; return { won: false };
     }
-    run.fights++;
+    run.fights++; if (g.enemy.elite && !g.enemy.boss) run.elitesBeaten = (run.elitesBeaten || 0) + 1; if (g.enemy.boss) run.bossesBeaten = (run.bossesBeaten || 0) + 1;
     var reward = { base: CONFIG.coinsWin, elite: g.enemy.boss ? CONFIG.coinsBoss : g.enemy.elite ? CONFIG.coinsElite : 0,
       ledger: has(run, "ledger") ? Math.min(10, Math.floor((g.overkill || 0) / (10 * CONFIG.forms.chipScale))) : 0,   // Overkill Ledger
       rep: 0 };
@@ -932,7 +936,7 @@
   function makeOffer(kind, run, rarity, patrons) {
     var R = run.rng; rarity = rarity || wpick(CONFIG.rarityWeights, R);
     if (rarity === "legendary") rarity = "rare";
-    if (kind === "any") { var x = R(); if (x < CONFIG.relicChance.pick) { var rl = relicOffer(run); if (rl) return rl; } kind = x < 0.5 ? "charm" : x < 0.65 ? "sigil" : "dice"; }
+    if (kind === "any") { var x = R(); if (x < CONFIG.relicChance.pick * relicBoost(run)) { var rl = relicOffer(run); if (rl) return rl; } kind = x < 0.5 ? "charm" : x < 0.65 ? "sigil" : "dice"; }
     if (kind === "sigil") { var sg = pick(Object.keys(SIGILS), R); return { kind: "sigil", id: sg, name: SIGILS[sg].name, desc: SIGILS[sg].desc, price: SIGILS[sg].price, icon: SIGILS[sg].icon, rarity: "common" }; }
     for (var ri = RARITIES.indexOf(rarity); ri >= 0; ri--) {
       var rr = RARITIES[ri], o = null;
@@ -955,6 +959,7 @@
     }
     return makeOffer("any", run, null, patrons);
   }
+  function relicBoost(run) { return (run.perks || {}).library ? CONFIG.libraryRelics : 1; }
   function relicOffer(run) {   // d: "rare rare if they are game breakers": the bigger the Mult, the rarer the relic
     var avail = Object.keys(RELICS).filter(function (k) { return (run.relics || []).indexOf(k) < 0; });
     if (!avail.length) return null; var w = {}; avail.forEach(function (a) { w[a] = Math.max(1, 4 - FORMS[a].mult); }); var k = wpick(w, run.rng), Rl = RELICS[k];
@@ -975,7 +980,7 @@
     var pk = Object.keys(PATRONS), p1 = pick(pk, R), p2 = pick(pk.filter(function (p) { return p !== p1; }), R), patrons = [p1, p2];   // a pick leans on two patrons
     // d: "too many big loot boxes". The box tier is rolled once; one offer is at that tier, the others are common.
     var tier = RARITIES[Math.max(rw.floor ? RARITIES.indexOf(rw.floor) : 0, RARITIES.indexOf(wpick(CONFIG.rarityWeights, R)))];
-    var rel = rw.floor === "rare" || (rw.floor === "uncommon" && R() < CONFIG.relicChance.elite) ? relicOffer(run) : null; if (rel) offers.push(rel);   // bosses always offer a relic; elites sometimes
+    var rel = rw.floor === "rare" || (rw.floor === "uncommon" && R() < CONFIG.relicChance.elite * relicBoost(run)) ? relicOffer(run) : null; if (rel) offers.push(rel);   // bosses always offer a relic; elites sometimes
     else if (tier !== "common") offers.push(offerAtLeast(run, tier, R, patrons));
     var last = run.lastOffers || [], guard = 0;
     while (offers.length < 3 && guard++ < 40) {
@@ -1009,7 +1014,7 @@
   function rollOffers(run) { shopping = true; try { return rollOffers0(run); } finally { shopping = false; } }
   function rollOffers0(run) {
     var sg = makeOffer("sigil", run); for (var t = 0; t < 6 && run.sigils.indexOf(sg.id) >= 0; t++) sg = makeOffer("sigil", run);
-    var offers = [makeOffer("charm", run), sg]; var srl = run.rng() < CONFIG.relicChance.shop ? relicOffer(run) : null; if (srl) offers.push(srl);
+    var offers = [makeOffer("charm", run), sg]; var srl = run.rng() < CONFIG.relicChance.shop * relicBoost(run) ? relicOffer(run) : null; if (srl) offers.push(srl);
     while (offers.length < CONFIG.shopOffers) offers.push(makeOffer(run.rng() < 0.35 ? "charm" : "dice", run));
     return offers;
   }
@@ -1598,7 +1603,7 @@
   }
 
   var API = {
-    skipRoom: skipRoom, quizRules: quizRules, giveUp: giveUp, foePower: foePower, foeWordPoints: foeWordPoints, resolveBust: resolveBust, startTutorial: startTutorial, TUTORIAL: TUTORIAL, WORD_TESTS: WORD_TESTS, thornReady: thornReady,
+    skipRoom: skipRoom, echoesEarned: echoesEarned, quizRules: quizRules, giveUp: giveUp, foePower: foePower, foeWordPoints: foeWordPoints, resolveBust: resolveBust, startTutorial: startTutorial, TUTORIAL: TUTORIAL, WORD_TESTS: WORD_TESTS, thornReady: thornReady,
     CONFIG: CONFIG, LETTER_VALUE: LETTER_VALUE, PATRONS: PATRONS, RELICS: RELICS, sellPrice: sellPrice, CHARMS: CHARMS, SIGILS: SIGILS, UPGRADES: UPGRADES, CURSES: CURSES, TRAITS: TRAITS,
     ROOMS: ROOMS, EVENTS: EVENTS, RARITY: RARITY, RARITIES: RARITIES,
     loadDictionary: loadDictionary, loadVocab: loadVocab, isWord: isWord, wordsFrom: wordsFrom, hasAnyWord: hasAnyWord, scoreWord: scoreWord,

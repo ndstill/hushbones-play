@@ -306,7 +306,7 @@
   .pushclock.low { animation: pulse .5s ease-in-out infinite alternate; }
   @keyframes pulse { to { box-shadow: inset 0 0 0 2px #ff6a55, 0 0 12px #ff6a55; } }
   /* ===== duel HUD v2 (mockup layout) ===== */
-  .col { padding-block: 6px; }
+  .col { padding-block: 4px; }
   .hdr { display: grid; grid-template-columns: 44px 1fr auto 44px; gap: 8px; align-items: center; }
   .tile { height: 40px; min-width: 44px; border: 2px solid #b8862e; border-radius: 3px; background: linear-gradient(#2c2025, #1a1215); box-shadow: inset 0 0 0 1px #120b0d, 0 2px 4px rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 8px; font: 900 15px Merriweather; color: var(--cream); }
   .tile img { width: 26px; height: 26px; object-fit: contain; }
@@ -396,7 +396,7 @@
   .ringTime.low { color: var(--bad); border-color: var(--bad); }
   .pstrip { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .pstrip .pm, .pstrip .ph { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; flex: none; box-shadow: 0 0 0 2px #6b4a1a, 0 2px 6px rgba(0,0,0,.6); }
-  .pstrip .hearts { display: flex; gap: 2px; } .pstrip .hearts img { width: 22px !important; height: 22px !important; }
+  .pstrip .hearts { display: flex; gap: 2px; } .pstrip .hearts img { width: 18px !important; height: 18px !important; }
   .tray { min-height: 44px; padding-left: 12px; }
   .tray .word { font-size: 28px; }
   .val2 { display: flex; gap: 10px; align-items: center; padding-left: 10px; border-left: 1px solid rgba(184,134,46,.55); }
@@ -431,7 +431,7 @@
   .val2 .d { padding-left: 10px; border-left: 1px solid rgba(184,134,46,.55); }
   .xbtn { width: 40px; height: 40px; font: 900 18px Merriweather; color: var(--cream); }
   .xbtn.warn { box-shadow: inset 0 0 0 2px var(--bad), 0 0 10px var(--bad); }
-  .act2 { display: grid; grid-template-columns: 1.55fr .7fr 1fr; gap: 8px; margin-top: 10px; align-items: stretch; }
+  .act2 { display: grid; grid-template-columns: 1.55fr .7fr 1fr; gap: 6px; margin-top: 6px; align-items: stretch; }
   .pill { display: grid; grid-template-columns: 1fr 1fr; border-radius: 40px; overflow: hidden; border: 2px solid #f2c14e; box-shadow: 0 3px 0 #4a2e08, 0 6px 12px rgba(0,0,0,.45); }
   .pill button { border: 0; padding: 6px 2px; color: #fff; line-height: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
   .pill .atk { background: linear-gradient(#e0423a, #9a1418); border-right: 1px solid #f2c14e; }
@@ -503,29 +503,29 @@
   .proj { font-size: 12px; } .proj b { font-size: 14px; }
 
   /* word tray, clear button */
-  .tray { min-height: 52px; }
-  .tray .word { font-size: 30px; letter-spacing: .12em; }
-  .tray .word.empty { font-size: 17px; color: rgba(243,230,204,.55); }
-  .xbtn { width: 46px; height: 46px; font-size: 19px; }
-  .val2 b { font-size: 21px; } .val2 span { font-size: 13px; }
+  .tray { min-height: 44px; padding-left: 8px; }
+  .tray .word { font-size: 26px; letter-spacing: .1em; }
+  .tray .word.empty { font-size: 15px; color: rgba(243,230,204,.55); }
+  .xbtn { width: 38px; height: 38px; font-size: 17px; }
+  .val2 b { font-size: 18px; } .val2 span { font-size: 12px; }
 
   /* commit pill: garnet and slate-ink lacquer with an engraved gold seam (was toy red / toy blue) */
   .pill { border-radius: 6px; border: 1px solid #c99a3e; box-shadow: inset 0 0 0 1px rgba(0,0,0,.5), 0 2px 0 #1a0a06, 0 6px 14px rgba(0,0,0,.5); }
-  .pill button { color: var(--cream); padding: 6px 2px 7px; gap: 3px; }
+  .pill button { color: var(--cream); padding: 4px 2px 5px; gap: 2px; }
   .pill .atk { background: radial-gradient(120% 80% at 50% 0%, rgba(255,120,100,.16), transparent 60%), linear-gradient(#7c1a22, #4a0a12); border-right: 2px solid #c99a3e; box-shadow: inset 0 0 0 3px rgba(0,0,0,0), inset 0 0 0 4px rgba(232,184,80,.22); }
   .pill .def { background: radial-gradient(120% 80% at 50% 0%, rgba(140,190,255,.16), transparent 60%), linear-gradient(#1d3a6a, #0d1b38); box-shadow: inset 0 0 0 3px rgba(0,0,0,0), inset 0 0 0 4px rgba(232,184,80,.22); }
-  .pill b { font-size: 30px; text-shadow: 0 2px 0 rgba(0,0,0,.45); }
+  .pill b { font-size: 26px; text-shadow: 0 2px 0 rgba(0,0,0,.45); }
   .pill .lb { font: 900 13px Alegreya; letter-spacing: .14em; color: var(--gold-hi); }
-  .pill i { font: normal 900 14px Merriweather; color: var(--cream); opacity: .92; }
+  .pill i { font: normal 900 13px Merriweather; color: var(--cream); opacity: .92; }
   .pill button:active:not(:disabled) { transform: translateY(2px); filter: brightness(1.15); }
   .pill button:disabled { filter: none; opacity: .5; }
   /* Cast and Roll */
-  .act2 { grid-auto-rows: 80px; }  /* one height for the pill, Cast and Roll (d) */
+  .act2 { grid-auto-rows: 68px; }  /* one height for the pill, Cast and Roll (d) */
   .act2 .pill { height: 100%; overflow: hidden; }   /* the pill's contents were 89px and overflowed the row, clipping "0 total" */
-  .act2 .pill button { height: 100%; padding: 3px 2px 4px; gap: 1px; justify-content: center; }
-  .act2 .pill b { font-size: 26px; line-height: 1; }
-  .castsq { font-size: 18px; height: auto; min-height: 0; align-self: stretch; }  /* no icon (d); stretches to the row like the pill and Roll */
-  .castsq small, .rollbig small { font: italic 700 13px Merriweather; }
+  .act2 .pill button { height: 100%; padding: 2px 2px; gap: 1px; justify-content: center; }
+  .act2 .pill b { font-size: 24px; line-height: 1; }
+  .castsq { font-size: 16px; height: auto; min-height: 0; align-self: stretch; }  /* no icon (d); stretches to the row like the pill and Roll */
+  .castsq small, .rollbig small { font: italic 700 11.5px Merriweather; }
   .castsq.forfeit { border-color: #9a2a34; color: #f3dcd0; background: linear-gradient(#4a0e18, #2c060e); box-shadow: inset 0 0 0 4px rgba(154,42,52,.4), 0 0 14px rgba(200,40,50,.35); }
   .castsq.forfeit small { color: #ff9a8c; }
   .rollbig { border: 1px solid #f3d27c; border-radius: 6px; color: #24140a; text-shadow: 0 1px 0 rgba(255,236,180,.45);
@@ -712,26 +712,26 @@
   .guardT { font-size: 15px; } .guardT i.shd { background: var(--ward); }
 
   /* Chips x Mult: the hero number, just above the word tray */
-  .scoreplate { margin: 4px 0 6px; padding: 6px 8px 5px; border-radius: 4px; border: 1px solid rgba(184,134,46,.6);
+  .scoreplate { margin: 3px 0 4px; padding: 4px 8px 3px; border-radius: 4px; border: 1px solid rgba(184,134,46,.6);
     background: radial-gradient(80% 120% at 50% 0%, rgba(248,220,140,.08), transparent 70%), rgba(14,5,10,.82); box-shadow: inset 0 0 0 3px rgba(0,0,0,0), inset 0 0 0 4px rgba(184,134,46,.18), 0 4px 12px rgba(0,0,0,.45); }
   .scoreplate[hidden] { display: none; }
-  .sp-main { display: flex; align-items: center; justify-content: center; gap: 7px; }
-  .sp-main > i { font: 900 20px Merriweather; color: var(--gold); font-style: normal; }
-  .sp-box { min-width: 76px; padding: 2px 10px 1px; border-radius: 4px; text-align: center; line-height: 1; }
-  .sp-box b, .sp-total b { display: block; font: 900 27px/1.05 Merriweather; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0,0,0,.45); }
-  .sp-box span, .sp-total span { font: 700 12px Alegreya; text-transform: uppercase; letter-spacing: .14em; color: rgba(243,230,204,.85); }
+  .sp-main { display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .sp-main > i { font: 900 18px Merriweather; color: var(--gold); font-style: normal; }
+  .sp-box { min-width: 68px; padding: 1px 8px 1px; border-radius: 4px; text-align: center; line-height: 1; }
+  .sp-box b, .sp-total b { display: block; font: 900 24px/1.05 Merriweather; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0,0,0,.45); }
+  .sp-box span, .sp-total span { font: 700 11px Alegreya; text-transform: uppercase; letter-spacing: .12em; color: rgba(243,230,204,.85); }
   .sp-box.chp { background: linear-gradient(#1f4478, #0e1f40); box-shadow: inset 0 0 0 1px rgba(143,196,244,.55); }
   .sp-box.mult { background: linear-gradient(#8a1c26, #4a0a12); box-shadow: inset 0 0 0 1px rgba(255,120,100,.5); }
-  .sp-total { min-width: 92px; text-align: center; line-height: 1; }
-  .sp-total b { font-size: 34px; color: var(--gold-hi); text-shadow: 0 2px 0 rgba(0,0,0,.5), 0 0 16px rgba(248,220,140,.35); }
+  .sp-total { min-width: 82px; text-align: center; line-height: 1; }
+  .sp-total b { font-size: 28px; color: var(--gold-hi); text-shadow: 0 2px 0 rgba(0,0,0,.5), 0 0 16px rgba(248,220,140,.35); }
   .scoreplate.lethal .sp-total b { color: #b8f08c; text-shadow: 0 2px 0 rgba(0,0,0,.5), 0 0 18px rgba(160,240,120,.55); }
   .scoreplate.lethal .sp-total span { color: #b8f08c; }
   .scoreplate.empty .sp-box, .scoreplate.empty .sp-total { opacity: .5; }
   .sp-box b.pop, .sp-total b.pop { animation: spop .45s cubic-bezier(.2,.8,.2,1); }
   @keyframes spop { 0% { transform: scale(1); } 30% { transform: scale(1.28); filter: brightness(1.4); } 100% { transform: scale(1); } }
-  .sp-forms { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 5px; min-height: 22px; }
-  .fm { display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; border-radius: 2px; font: 700 13px Alegreya; color: var(--cream); border: 1px solid rgba(184,134,46,.45); }
-  .fm b { font: 900 12px Merriweather; color: var(--gold-hi); }
+  .sp-forms { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 3px; min-height: 18px; }
+  .fm { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 2px; font: 700 12px Alegreya; color: var(--cream); border: 1px solid rgba(184,134,46,.45); }
+  .fm b { font: 900 11.5px Merriweather; color: var(--gold-hi); }
   .fm.on { color: #24140a; background: url(assets/ui/tex_gold.jpg) center / 100% 100%, #c99a3e; border-color: #f3d27c; } .fm.on b { color: #5a1a10; }
   .fm.chain { border-color: rgba(185,140,255,.7); color: #e8d8ff; background: rgba(90,50,140,.45); } .fm.chain b { color: #fff; }
   .fm.new { border-style: dashed; border-color: #f3d27c; color: var(--gold-hi); animation: fnew 1s ease-in-out infinite; }
@@ -753,11 +753,11 @@
   .pill .def:not(:disabled) .lb { color: #fff1c8; }
 
   /* Roll: the Chain meter lives on the button */
-  .rollbig { flex-direction: column; gap: 0; line-height: 1.05; }
+  .rollbig { flex-direction: column; gap: 0; line-height: 1.05; font-size: 20px; }
   .rollbig .die { display: none; }
   #rollLbl { display: flex; flex-direction: column; align-items: center; }
-  .chainpips { display: flex; gap: 6px; margin: 4px 0 3px; }
-  .chainpips i { width: 10px; height: 10px; transform: rotate(45deg); border: 1.5px solid rgba(60,30,6,.75); background: rgba(60,30,6,.15); }
+  .chainpips { display: flex; gap: 5px; margin: 2px 0 2px; }
+  .chainpips i { width: 8px; height: 8px; transform: rotate(45deg); border: 1.5px solid rgba(60,30,6,.75); background: rgba(60,30,6,.15); }
   .chainpips i.on { background: #5a1a10; border-color: #5a1a10; box-shadow: 0 0 6px rgba(255,200,120,.8); }
   .chainpips i.next { animation: pip 1s ease-in-out infinite; }
   @keyframes pip { 50% { background: rgba(90,26,16,.55); } }
@@ -765,9 +765,9 @@
   .rollbig:disabled .chainpips i.on { background: var(--gold); border-color: var(--gold); box-shadow: none; }
 
   /* slimmer player strip so the dice keep their room */
-  .pstrip { margin-bottom: 4px; }
-  .pstrip .pm, .pstrip .ph { width: 44px; height: 44px; }
-  .pstrip .hpbar.big { height: 22px; } .pstrip .hpbar.big b { line-height: 22px; font-size: 14px; }
+  .pstrip { margin-bottom: 2px; }
+  .pstrip .pm, .pstrip .ph { width: 38px; height: 38px; }
+  .pstrip .hpbar.big { height: 20px; } .pstrip .hpbar.big b { line-height: 20px; font-size: 13px; }
   .enemy { margin-top: 6px; } .enemy .medal { width: 70px; height: 70px; }
   .castsq.ready { border-color: #f3d27c; color: var(--gold-hi); animation: castready 1.2s ease-in-out infinite; }
   .castsq.ready small { color: #b8f08c; }
@@ -779,9 +779,9 @@
   /* ===== UI v4.1: one Submit button; the word's length decides its job (d) ===== */
   .pill { grid-template-columns: 1fr; }
   .pill .submit { border-right: 0 !important; transition: background .2s; }
-  .pill .submit .lb { color: var(--gold-hi); }
-  .pill .submit b { font-size: 27px; }
-  .pill .submit i { font: italic 700 13px Merriweather; }
+  .pill .submit .lb { color: var(--gold-hi); font-size: 13px; }
+  .pill .submit b { font-size: 24px; }
+  .pill .submit i { font: italic 700 12px Merriweather; }
   .pill .submit.r-hit:not(:disabled) { background: radial-gradient(120% 80% at 50% 0%, rgba(255,120,100,.2), transparent 60%), linear-gradient(#7c1a22, #4a0a12); }
   .pill .submit.r-break:not(:disabled) { background: radial-gradient(120% 80% at 50% 0%, rgba(248,220,140,.28), transparent 60%), linear-gradient(#5a3a10, #2c1a06); box-shadow: inset 0 0 0 2px rgba(248,220,140,.6); }
   .pill .submit.r-halve:not(:disabled), .pill .submit.r-cancel:not(:disabled) { background: radial-gradient(120% 80% at 50% 0%, rgba(140,190,255,.2), transparent 60%), linear-gradient(#1d3a6a, #0d1b38); box-shadow: inset 0 0 0 2px rgba(143,196,244,.55); }
@@ -821,9 +821,9 @@
   .fm.red { border-color: rgba(255,107,87,.7); color: #ffd8d0; background: rgba(140,30,24,.45); } .fm.red b { color: #fff; }
   .sp-forms .pl { font: 900 13px Merriweather; color: var(--gold); font-style: normal; align-self: center; }
   .sp-forms .eq { font: 900 13px Merriweather; color: var(--gold-hi); font-style: normal; align-self: center; margin-left: 2px; white-space: nowrap; }
-  .sp-prev { height: 20px; line-height: 20px; margin-bottom: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; font: 700 13px Alegreya; color: var(--dim); opacity: 0; transition: opacity .15s; }   /* always holds its row: no clipping or layout jump */
+  .sp-prev { height: 18px; line-height: 18px; margin-bottom: 1px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; font: 700 12px Alegreya; color: var(--dim); opacity: 0; transition: opacity .15s; }   /* always holds its row: no clipping or layout jump */
   .sp-prev.on { opacity: 1; }
-  .sp-prev b { font: 900 13px Merriweather; color: var(--cream); } .sp-prev b.t { color: var(--gold-hi); } .sp-prev span { color: #b8f08c; font-weight: 700; }
+  .sp-prev b { font: 900 12px Merriweather; color: var(--cream); } .sp-prev b.t { color: var(--gold-hi); } .sp-prev span { color: #b8f08c; font-weight: 700; }
   #incoming { white-space: normal; text-align: right; font-size: 13px; line-height: 1.2; }
   .ringTime small { display: block; margin-top: -2px; font: italic 700 11px Alegreya; color: var(--dim); text-align: center; }
   #app.timed .toastline { top: 58px; }
@@ -1065,7 +1065,7 @@ function newRun(seed) {
     <div class="seedrow" style="margin-top:8px;${saved ? "display:none" : ""}">Seed <input id="seedIn" value="${run.seed}" maxlength="8" autocomplete="off" spellcheck="false"><button class="btn-dark" data-act="reseed">New</button></div>
     ${saved ? `<button class="big btn-gold" data-act="continuerun">Continue</button>` : ""}
     <button class="big ${saved ? "btn-dark" : "btn-gold"}" data-act="start">${saved ? "New run" : "Begin Year One"}</button>    <button class="big btn-dark" data-act="quickstart" style="height:44px;font-size:14px">Skip the story</button>
-    <button class="btn-dark" data-act="tutorial" style="height:36px;font-size:13px;margin:6px auto 0;display:block;padding:0 14px">Practice duel</button>
+    <button class="btn-dark" data-act="tutorial" style="height:36px;font-size:13px;margin:6px auto 0;display:block;padding:0 14px">Tutorial duel</button>
     <div class="metaRow"><button class="btn-dark" data-act="board">Leaderboard</button><button class="btn-dark" data-act="casebook">Casebook</button><button class="btn-dark" data-act="echoes">Echoes · ${getMeta().echoes}</button></div></div>`);
   render();
 }
@@ -1141,7 +1141,7 @@ const TUTOR_TEXT = {
   stone: "A new round, with fresh dice. Spell <b>STONE</b>.",
   roll: "Tap <b>ROLL</b> to reroll your unused dice. You can roll after a scoring word, and each roll adds +1 Mult (<b>Chain</b>). If no word shows up, you lose this turn's total.",
   rain: "Your rolled dice show R A I N. Spell <b>RAIN</b>. In a real duel you'd have a few seconds on the clock.",
-  cast2: "Every die used again: All Speak. Tap <b>CAST</b> to finish the practice. Rare <b>relics</b> unlock hidden word bonuses, like Ladder words.",
+  cast2: "Every die used again: All Speak. Tap <b>CAST</b> to finish the tutorial. Rare <b>relics</b> unlock hidden word bonuses, like Ladder words.",
 };
 function tutorText(G) { const st = tutorStep(G); return TUTOR_TEXT[st === "cast" && G.round > 1 ? "cast2" : st]; }
 function tutorBlocks(G, action, word) {   // returns a hint if this action isn't this step's
@@ -1154,20 +1154,20 @@ function tutorBlocks(G, action, word) {   // returns a hint if this action isn't
 let tutorAfter = null;   // "start" | "quickstart" | null (from the title button)
 function startTutorialUI(after) {
   tutorAfter = after || null; clearSave();
-  run = LF.newRun("PRACTICE", null, "normal", {}); run.tutorial = true; sel = [];
+  run = LF.newRun("TUTORIAL", null, "normal", {}); run.tutorial = true; sel = [];
   LF.startTutorial(run);
   D3.setDice(diceFaces(), echoFlags(), agedFlags(), getMeta().finish, materialFlags()); D3.clearTable();
   SFX.setScene("duel"); setVenue(1);
-  showOverlay(`${bustImg("tamsin")}<h2>Practice with Tamsin</h2>
+  showOverlay(`${bustImg("tamsin")}<h2>Tutorial with Tamsin</h2>
     <p class="quip">\u201CBefore anyone challenges you for real, let me show you how a duel works. I'll go easy. Mostly.\u201D</p>
     <p class="small">A short guided duel. Follow the tip above your health bar.</p>
-    <button class="big btn-gold" data-act="play">Start practice</button>
-    <button class="big btn-dark" data-act="tutorskip" style="height:44px;font-size:14px">Skip practice</button>`);
+    <button class="big btn-gold" data-act="play">Start tutorial</button>
+    <button class="big btn-dark" data-act="tutorskip" style="height:44px;font-size:14px">Skip tutorial</button>`);
 }
 function endTutorial() {
   const m = getMeta(); m.tutorialDone = true; saveMeta(m);
   SFX.play("victory"); SFX.fanfare(.1);
-  showOverlay(`${bustImg("tamsin")}<h2>Practice done</h2>
+  showOverlay(`${bustImg("tamsin")}<h2>Tutorial done</h2>
     <p class="quip">\u201CSee? You're a natural. Don't tell anyone I let you win.\u201D</p>
     <ul class="small" style="text-align:left;margin:6px 0 10px;padding-left:18px">
       <li>4+ letter words score <b>Chips × Mult</b>. Longer words multiply their Chips.</li>

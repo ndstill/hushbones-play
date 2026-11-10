@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Sunset Vice</title>
+<style>
+  :root {
+    --pink: #ff3fa4; --teal: #19e3d6; --sun: #ffb347; --ink: #1b0b33; --night: #12062b;
+    --cream: #fff4e6; --dim: rgba(255,244,230,.66);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--night); overflow: hidden; }
+  body { font-family: "Avenir Next Condensed", "Avenir Next", "Helvetica Neue", Arial, sans-serif; color: var(--cream); user-select: none; -webkit-user-select: none; }
+  .stage { position: relative; max-width: 440px; height: 100%; margin: 0 auto; overflow: hidden;
+    background: linear-gradient(180deg, #1a0b3d 0%, #3c1466 22%, #a3237f 44%, #ff5a8a 56%, #ffa95e 66%, #2a0f4d 66.2%, #12062b 100%); }
+  /* sky */
+  .sun { position: absolute; left: 50%; top: 33%; width: 230px; height: 230px; margin-left: -115px; border-radius: 50%;
+    background: linear-gradient(180deg, #fff06a 0%, #ffb347 38%, #ff4f9a 100%);
+    -webkit-mask: repeating-linear-gradient(180deg, #000 0 20px, transparent 20px 26px), linear-gradient(#000, #000);
+    -webkit-mask-size: 100% 50%, 100% 50%; -webkit-mask-position: 0 100%, 0 0; -webkit-mask-repeat: no-repeat;
+    mask: repeating-linear-gradient(180deg, #000 0 20px, transparent 20px 26px), linear-gradient(#000, #000);
+    mask-size: 100% 50%, 100% 50%; mask-position: 0 100%, 0 0; mask-repeat: no-repeat;
+    filter: drop-shadow(0 0 30px rgba(255,120,160,.55)); }
+  .grid { position: absolute; left: -50%; right: -50%; top: 66.2%; bottom: 0; transform-origin: 50% 0; transform: perspective(260px) rotateX(62deg);
+    background: linear-gradient(rgba(25,227,214,.5) 2px, transparent 2px) 0 0 / 100% 44px, linear-gradient(90deg, rgba(255,63,164,.5) 2px, transparent 2px) 0 0 / 44px 100%;
+    animation: drive 2.4s linear infinite; opacity: .55; }
+  @keyframes drive { to { background-position: 0 44px, 0 0; } }
+  .palm { position: absolute; top: 66.2%; width: 150px; height: 300px; margin-top: -292px; fill: #12062b; pointer-events: none; }
+  .palm.l { left: -34px; } .palm.r { right: -34px; transform: scaleX(-1); }
+  .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,6,43,.25) 0%, rgba(18,6,43,0) 30%, rgba(18,6,43,.55) 62%, rgba(18,6,43,.82) 100%); pointer-events: none; }
+
+  .ui { position: absolute; inset: 0; display: flex; flex-direction: column; padding: calc(10px + env(safe-area-inset-top)) 16px calc(14px + env(safe-area-inset-bottom)); }
+  .neon { font-family: "Snell Roundhand", "Brush Script MT", "Segoe Script", cursive; font-weight: 700; color: #fff;
+    text-shadow: 0 0 6px #fff, 0 0 14px var(--pink), 0 0 30px var(--pink), 0 0 60px var(--pink); }
+  .cap { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); }
+  .num { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+  /* top bar */
+  .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .top .logo { font-size: 26px; line-height: 1; }
+  .score { text-align: right; }
+  .score .num { font-size: 34px; line-height: 1; color: #fff; text-shadow: 0 0 12px rgba(25,227,214,.9); }
+  .pips { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+  .pip { width: 22px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.2); }
+  .pip.done { background: var(--teal); box-shadow: 0 0 8px var(--teal); } .pip.bust { background: #6b3a66; }
+  .pip.now { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+  .pips span { margin-left: 6px; }
+
+  /* take panel */
+  .take { margin-top: 14px; padding: 12px 14px; border-radius: 16px; background: rgba(18,6,43,.62); border: 1.5px solid rgba(25,227,214,.55);
+    box-shadow: 0 0 18px rgba(25,227,214,.25), inset 0 0 18px rgba(25,227,214,.08); display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: end; }
+  .take .big { font-size: 44px; line-height: 1; color: #fff; text-shadow: 0 0 14px rgba(255,63,164,.9); }
+  .heat { text-align: right; } .heat .num { font-size: 30px; color: var(--sun); text-shadow: 0 0 12px rgba(255,179,71,.8); line-height: 1; }
+  .tags { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; min-height: 22px; }
+  .tag { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,.12); color: var(--cream); }
+  .tag.hot { background: rgba(255,63,164,.3); color: #ffd3ea; } .tag.gold { background: rgba(255,179,71,.28); color: #ffe2b5; }
+  .played { grid-column: 1 / -1; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); min-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* word tray */
+  .mid { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; min-height: 0; }
+  .msg { text-align: center; min-height: 22px; font-size: 14px; letter-spacing: .08em; color: var(--cream); text-shadow: 0 1px 6px #000; }
+  .msg.bad { color: #ffb0c4; }
+  .tray { margin: 8px 0 10px; height: 62px; display: flex; align-items: center; justify-content: center; gap: 5px; border-radius: 14px;
+    background: rgba(18,6,43,.55); border: 1.5px dashed rgba(255,255,255,.28); }
+  .tray.ok { border: 1.5px solid var(--teal); box-shadow: 0 0 16px rgba(25,227,214,.45); }
+  .tray .ph { color: var(--dim); font-size: 13px; letter-spacing: .16em; text-transform: uppercase; }
+  .tl { width: 36px; height: 44px; border-radius: 8px; background: var(--cream); color: var(--ink); font-size: 26px; font-weight: 800; display: grid; place-items: center; text-transform: uppercase; }
+  .tl.neon-d { background: #ffd0ea; box-shadow: 0 0 12px var(--pink); }
+  .worth { margin-left: 8px; font-size: 20px; color: var(--teal); text-shadow: 0 0 10px rgba(25,227,214,.8); }
+
+  /* dice */
+  .dice { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .die { position: relative; aspect-ratio: 1; border-radius: 16px; border: 0; padding: 0; font: inherit; cursor: pointer;
+    background: linear-gradient(160deg, #ffffff 0%, #ffe9f3 55%, #d9fbf7 100%); color: var(--ink);
+    box-shadow: 0 6px 0 #b98ac4, 0 10px 18px rgba(0,0,0,.45); transition: transform .12s, box-shadow .12s, opacity .2s; }
+  .die b { font-size: 40px; font-weight: 800; text-transform: uppercase; line-height: 1; }
+  .die i { position: absolute; right: 8px; bottom: 6px; font-style: normal; font-size: 12px; font-weight: 700; opacity: .6; }
+  .die.neon-d { box-shadow: 0 6px 0 #c2267c, 0 0 0 3px var(--pink), 0 0 22px var(--pink); }
+  .die.neon-d::after { content: "×2"; position: absolute; left: 7px; top: 5px; font-size: 12px; font-weight: 800; color: var(--pink); }
+  .die.sel { transform: translateY(5px) scale(.94); opacity: .38; box-shadow: 0 1px 0 #b98ac4; }
+  .die.gone { visibility: hidden; }
+  .die.rolling { animation: tumble .42s cubic-bezier(.3,1.4,.5,1) both; }
+  @keyframes tumble { 0% { transform: translateY(-46px) rotate(-22deg) scale(.7); opacity: 0; } 100% { transform: none; opacity: 1; } }
+
+  /* buttons */
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .row.one { grid-template-columns: 64px 1fr; }
+  .btn { border: 0; border-radius: 14px; min-height: 58px; font: inherit; font-weight: 800; font-size: 19px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; color: var(--ink); line-height: 1.1; }
+  .btn small { display: block; font-size: 11px; letter-spacing: .14em; font-weight: 700; opacity: .8; margin-top: 3px; }
+  .btn.bank { background: linear-gradient(180deg, #7ff5ec, #19e3d6); box-shadow: 0 5px 0 #0c8f88, 0 0 20px rgba(25,227,214,.5); }
+  .btn.roll { background: linear-gradient(180deg, #ff8ccb, #ff3fa4); box-shadow: 0 5px 0 #a81867, 0 0 20px rgba(255,63,164,.5); color: #2a0320; }
+  .btn.play { background: linear-gradient(180deg, #fff06a, #ffb347); box-shadow: 0 5px 0 #b76a12, 0 0 20px rgba(255,179,71,.5); }
+  .btn.ghost { background: rgba(18,6,43,.6); color: var(--cream); border: 1.5px solid rgba(255,255,255,.35); }
+  .btn:active { transform: translateY(3px); }
+  .btn[disabled] { filter: grayscale(.8) brightness(.6); box-shadow: none; cursor: default; }
+
+  /* overlays */
+  .over { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 22px; background: rgba(18,6,43,.84); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); overflow-y: auto; }
+  .over.on { display: flex; }
+  .over h1 { font-size: 64px; margin: 0 0 4px; line-height: 1.05; }
+  .over h2 { font-size: 46px; margin: 0 0 6px; }
+  .over p { margin: 6px 0; font-size: 16px; line-height: 1.4; color: var(--cream); max-width: 320px; }
+  .over .btn { width: 100%; max-width: 300px; margin-top: 12px; }
+  .tagline { font-size: 13px; letter-spacing: .34em; text-transform: uppercase; color: var(--teal); text-shadow: 0 0 10px rgba(25,227,214,.8); margin-bottom: 18px; }
+  .rules { text-align: left; max-width: 320px; margin: 4px 0 6px; padding: 0; list-style: none; font-size: 15px; line-height: 1.35; }
+  .rules li { margin: 7px 0; padding-left: 16px; position: relative; } .rules li::before { content: ""; position: absolute; left: 0; top: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 8px var(--pink); }
+  .final { font-size: 62px; line-height: 1; color: #fff; text-shadow: 0 0 18px rgba(25,227,214,.9); margin: 6px 0; }
+  .rank { font-size: 18px; letter-spacing: .3em; text-transform: uppercase; color: var(--sun); text-shadow: 0 0 12px rgba(255,179,71,.7); }
+  .board { width: 100%; max-width: 280px; margin: 12px 0 2px; font-size: 15px; }
+  .board div { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,.12); color: var(--dim); }
+  .board div.me { color: #fff; text-shadow: 0 0 8px var(--pink); }
+  .pop { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font-size: 44px; pointer-events: none; opacity: 0; }
+  .pop.go { animation: pop 1.3s ease-out; }
+  @keyframes pop { 0% { opacity: 0; transform: scale(.6); } 15% { opacity: 1; transform: scale(1.08); } 70% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: translateY(-24px); } }
+  @media (max-height: 700px) { .take .big { font-size: 36px; } .die b { font-size: 34px; } .btn { min-height: 52px; } .tray { height: 54px; } }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="sun"></div>
+  <svg class="palm l" viewBox="0 0 150 300"><use href="#palm"/></svg>
+  <svg class="palm r" viewBox="0 0 150 300"><use href="#palm"/></svg>
+  <div class="grid"></div>
+  <div class="shade"></div>
+  <svg width="0" height="0" style="position:absolute"><defs><g id="palm">
+    <path d="M70 300 C74 220 70 150 82 78 L90 80 C82 150 86 220 84 300 Z"/>
+    <path d="M86 80 C60 50 30 48 6 66 C34 60 58 68 80 88 Z"/>
+    <path d="M86 80 C70 40 44 22 14 22 C44 32 62 52 78 86 Z"/>
+    <path d="M86 80 C90 44 78 16 56 2 C72 26 76 52 80 84 Z"/>
+    <path d="M86 80 C104 48 128 38 148 44 C124 50 106 66 92 90 Z"/>
+    <path d="M86 80 C112 72 134 82 146 104 C128 90 108 86 88 92 Z"/>
+    <path d="M86 80 C62 82 42 98 34 122 C50 104 68 96 88 94 Z"/>
+  </g></defs></svg>
+
+  <div class="ui">
+    <div class="top">
+      <div>
+        <div class="neon logo">Sunset Vice</div>
+        <div class="pips" id="pips"></div>
+      </div>
+      <div class="score"><div class="cap">Banked</div><div class="num" id="score">0</div></div>
+    </div>
+
+    <div class="take">
+      <div><div class="cap">On the table</div><div class="num big" id="take">$0</div></div>
+      <div class="heat"><div class="cap">Heat</div><div class="num" id="heat">×1</div></div>
+      <div class="tags" id="tags"></div>
+      <div class="played" id="played"></div>
+    </div>
+
+    <div class="mid">
+      <div class="msg" id="msg"></div>
+      <div class="tray" id="tray"></div>
+      <div class="dice" id="dice"></div>
+      <div class="row" id="rowA"></div>
+    </div>
+  </div>
+
+  <div class="pop neon" id="pop"></div>
+  <div class="over on" id="title">
+    <h1 class="neon">Sunset Vice</h1>
+    <div class="tagline">Five hands · One night</div>
+    <ul class="rules">
+      <li>Tap dice to spell a word of 3+ letters. Its cash goes on the table.</li>
+      <li><b>Bank</b> to keep it, or <b>Roll</b> the dice you have left (never fewer than 4). Every roll adds Heat, and Heat multiplies your words.</li>
+      <li>Roll no word and you <b>bust</b>: the table is gone.</li>
+      <li>The pink die pays double. Use all 8 dice for a Clean Sweep.</li>
+    </ul>
+    <button class="btn play" data-go="daily">Tonight's table<small id="dailyNote">Same dice for everyone today</small></button>
+    <button class="btn ghost" data-go="free">Free play</button>
+    <p class="cap" id="bestLine" style="margin-top:14px"></p>
+  </div>
+  <div class="over" id="end"></div>
+</div>
+
+<script src="words.js"></script>
+<script src="core.js"></script>
+<script>
+"use strict";
+LF.loadDictionary(window.LF_WORDS, window.LF_COMMON);
+var SFX = null; import("./sfx.js").then(function (m) { SFX = m; }).catch(function () {});
+function snd(n, o) { try { if (SFX) SFX.play(n, o || {}); } catch (e) {} }
+addEventListener("pointerdown", function () { try { if (SFX) SFX.unlock(); } catch (e) {} }, { passive: true });
+
+var DICE = ["AEIOUA", "AEIOUE", "EEAOIY", "RSTLNE", "STRNDL", "TSRLDO", "NSTRLA", "CMPBHG"];
+var LEN = { 3: 1, 4: 1.5, 5: 2, 6: 3, 7: 4, 8: 5 };
+var HANDS = 5, MAX_ROLLS = 3, HEAT_CAP = 6, MIN_ROLL = 4;
+var RANKS = [[0, "Tourist"], [1500, "Valet"], [3500, "Hustler"], [6000, "High Roller"], [10000, "Club Owner"], [16000, "Kingpin"]];
+var $ = function (id) { return document.getElementById(id); };
+var S = null, busy = false;
+
+function rngFrom(str) { var h = 1779033703 ^ str.length; for (var i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
+  return function () { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; }; }
+function today() { var d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
+function money(n) { return "$" + Math.round(n).toLocaleString("en-US"); }
+function rankOf(n) { var r = RANKS[0][1]; RANKS.forEach(function (x) { if (n >= x[0]) r = x[1]; }); return r; }
+
+function newNight(mode) {
+  S = { mode: mode, day: today(), rng: mode === "daily" ? rngFrom("vice-" + today()) : Math.random, hand: 0, score: 0, results: [], streak: 0, best: null, busts: 0 };
+  $("title").classList.remove("on"); $("end").classList.remove("on");
+  nextHand();
+}
+function nextHand() {
+  S.hand++; S.take = 0; S.heat = 1; S.rolls = 0; S.played = []; S.sinceRoll = false; S.picked = []; S.phase = "play";
+  S.dice = DICE.map(function (f) { return { faces: f, l: "", gone: false, neon: false }; });
+  say(S.hand === HANDS ? "Last call: this hand banks double." : "Hand " + S.hand + " of " + HANDS + ". Spell a word.");
+  throwDice(true);
+}
+function rollSet() {   // a roll throws the dice left, never fewer than MIN_ROLL (spent dice come back to fill)
+  var L = live(), i = 0; while (L.length < MIN_ROLL && i < S.dice.length) { if (S.dice[i].gone) L.push(S.dice[i]); i++; } return L;
+}
+function live() { return S.dice.filter(function (d) { return !d.gone; }); }
+function throwDice(fresh) {
+  var L = live(); S.dice.forEach(function (d) { d.neon = false; });
+  L.forEach(function (d) { d.l = d.faces[Math.floor(S.rng() * 6)].toLowerCase(); });
+  L[Math.floor(S.rng() * L.length)].neon = true;
+  S.picked = []; S.sinceRoll = false; S.risk = null;
+  render(true); snd("push");
+  if (!LF.hasAnyWord(L.map(function (d) { return d.l; }), 3)) { busy = true; setTimeout(bust, 900); }
+}
+function word() { return S.picked.map(function (i) { return S.dice[i].l; }).join(""); }
+function worth(idx) {
+  var w = idx.map(function (i) { return S.dice[i].l; }), sum = 0; w.forEach(function (c) { sum += LF.LETTER_VALUE[c] || 0; });
+  var neon = idx.some(function (i) { return S.dice[i].neon; });
+  return Math.round(sum * 10 * (LEN[Math.min(w.length, 8)] || 1) * (neon ? 2 : 1) * S.heat);
+}
+function valid() { var w = word(); return w.length >= 3 && LF.isWord(w, 3); }
+
+function tapDie(i) {
+  if (busy || S.phase !== "play") return;
+  var at = S.picked.indexOf(i);
+  if (at >= 0) { S.picked.splice(at, 1); snd("deselect"); } else { S.picked.push(i); snd("select"); }
+  say(""); render();
+}
+function playWord() {
+  if (busy) return;
+  var w = word();
+  if (w.length < 3) { say("Words need 3 or more letters.", true); snd("wrong"); return; }
+  if (!LF.isWord(w, 3)) { say(w.toUpperCase() + " isn't in the dictionary.", true); snd("wrong"); return; }
+  var v = worth(S.picked); S.take += v; S.played.push(w); S.sinceRoll = true;
+  if (!S.best || v > S.best.v) S.best = { w: w, v: v };
+  S.picked.forEach(function (i) { S.dice[i].gone = true; S.dice[i].neon = false; }); S.picked = [];
+  snd("word_attack"); say(w.toUpperCase() + " pays " + money(v) + ".");
+  if (!live().length) {   // Clean Sweep: every die back, +1 Heat, no roll spent
+    S.heat = Math.min(HEAT_CAP, S.heat + 1); S.dice.forEach(function (d) { d.gone = false; });
+    pop("Clean Sweep"); snd("allspeak"); say("Clean Sweep! All 8 dice are back and Heat is up.");
+    busy = true; render(); setTimeout(function () { busy = false; throwDice(); }, 700); return;
+  }
+  S.risk = bustRisk(); render();
+}
+function bustRisk() {
+  var L = rollSet();
+  var n = 240, b = 0;
+  for (var k = 0; k < n; k++) { var ls = L.map(function (d) { return d.faces[Math.floor(Math.random() * 6)].toLowerCase(); }); if (!LF.hasAnyWord(ls, 3)) b++; }
+  return b / n;
+}
+function rollBlock() {
+  if (!S.sinceRoll) return "Play a word first";
+  if (S.rolls >= MAX_ROLLS) return "No rolls left";
+  return "";
+}
+function roll() {
+  if (busy) return;
+  var why = rollBlock(); if (why) { say(why + ".", true); snd("wrong"); return; }
+  rollSet().forEach(function (d) { d.gone = false; });
+  S.rolls++; S.heat = Math.min(HEAT_CAP, S.heat + 1);
+  say("Heat ×" + S.heat + ". Words now pay " + S.heat + " times over."); throwDice();
+}
+function bank() {
+  if (busy || S.phase !== "play") return;
+  var mult = (S.hand === HANDS ? 2 : 1) * (1 + 0.1 * S.streak), gain = Math.round(S.take * mult);
+  S.results.push(gain > 0 ? "done" : "bust"); if (gain > 0) S.streak++; else S.streak = 0;
+  var from = S.score; S.score += gain; snd(gain > 0 ? "coin" : "click"); if (gain > 0) pop("+" + money(gain));
+  count($("score"), from, S.score); endHand();
+}
+function bust() {
+  S.phase = "bust"; S.busts++; S.results.push("bust"); S.streak = 0; var lost = S.take; S.take = 0;
+  snd("fizzle"); pop("Busted"); say(lost ? "No word in that roll. " + money(lost) + " walked out the door." : "No word in that roll.", true);
+  render(); endHand(1500);
+}
+function endHand(wait) {
+  busy = true;
+  setTimeout(function () { busy = false; if (S.hand >= HANDS) endNight(); else nextHand(); }, wait || 1100);
+}
+function endNight() {
+  S.phase = "over"; snd("victory");
+  var key = S.mode === "daily" ? "sv_daily" : "sv_free", board = store(key) || [], prevBest = board.length ? board[0].s : 0;
+  if (S.mode === "daily") board = board.filter(function (e) { return e.d === S.day; });
+  var me = { s: S.score, d: S.day, w: S.best ? S.best.w : "" }; board.push(me); board.sort(function (a, b) { return b.s - a.s; }); board = board.slice(0, 5); store(key, board);
+  var all = Math.max(store("sv_best") || 0, S.score); store("sv_best", all);
+  var isBest = S.score > 0 && board[0] === me;
+  var share = "Sunset Vice " + (S.mode === "daily" ? S.day : "free play") + ": " + money(S.score) + " (" + rankOf(S.score) + ") " + S.results.map(function (r) { return r === "done" ? "🟩" : "🟥"; }).join("");
+  $("end").innerHTML = '<h2 class="neon">' + (isBest ? "New best" : "Night's over") + '</h2><div class="cap">' + (S.mode === "daily" ? "Tonight's table" : "Free play") + '</div>' +
+    '<div class="num final">' + money(S.score) + '</div><div class="rank">' + rankOf(S.score) + '</div>' +
+    '<p>' + (S.best ? "Best word: <b>" + S.best.w.toUpperCase() + "</b> for " + money(S.best.v) + ". " : "") + (S.busts ? S.busts + " bust" + (S.busts > 1 ? "s" : "") + "." : "No busts.") + '</p>' +
+    '<div class="board">' + board.map(function (e, i) { return '<div class="' + (e === me ? "me" : "") + '"><span>' + (i + 1) + ". " + (e.w || "").toUpperCase() + '</span><span class="num">' + money(e.s) + '</span></div>'; }).join("") + '</div>' +
+    '<button class="btn play" data-go="' + (S.mode === "daily" ? "free" : "free") + '">' + (S.mode === "daily" ? "Free play" : "Play again") + '</button>' +
+    (S.mode === "daily" ? '<button class="btn ghost" data-go="daily">Retry tonight\'s table</button>' : '<button class="btn ghost" data-go="daily">Tonight\'s table</button>') +
+    '<button class="btn ghost" id="share">Copy result</button>';
+  $("end").classList.add("on");
+  $("share").onclick = function () { var b = this; (navigator.clipboard ? navigator.clipboard.writeText(share) : Promise.reject()).then(function () { b.textContent = "Copied"; }, function () { b.textContent = share; b.style.fontSize = "12px"; }); };
+  void prevBest;
+}
+
+function say(t, bad) { var m = $("msg"); m.textContent = t; m.className = "msg" + (bad ? " bad" : ""); }
+function pop(t) { var p = $("pop"); p.textContent = t; p.classList.remove("go"); void p.offsetWidth; p.classList.add("go"); }
+function count(el, a, b) { var t0 = performance.now(); (function step(t) { var k = Math.min(1, (t - t0) / 500); el.textContent = Math.round(a + (b - a) * k).toLocaleString("en-US"); if (k < 1) requestAnimationFrame(step); })(t0); }
+
+function render(rolled) {
+  var pips = ""; for (var h = 1; h <= HANDS; h++) pips += '<div class="pip ' + (h < S.hand || S.phase !== "play" && h === S.hand ? (S.results[h - 1] || "now") : h === S.hand ? "now" : "") + '"></div>';
+  $("pips").innerHTML = pips + '<span class="cap">Hand ' + S.hand + "/" + HANDS + "</span>";
+  if (!busy || S.phase !== "play") $("score").textContent = S.score.toLocaleString("en-US");
+  $("take").textContent = money(S.take); $("heat").textContent = "×" + S.heat;
+  var tags = [];
+  if (S.hand === HANDS) tags.push('<span class="tag gold">Last call: banks ×2</span>');
+  if (S.streak) tags.push('<span class="tag hot">Streak +' + S.streak * 10 + "%</span>");
+  tags.push('<span class="tag">Rolls left ' + (MAX_ROLLS - S.rolls) + "</span>");
+  $("tags").innerHTML = tags.join(""); $("played").textContent = S.played.join(" · ");
+  var ok = valid(), tray = $("tray");
+  tray.className = "tray" + (ok ? " ok" : "");
+  tray.innerHTML = S.picked.length ? S.picked.map(function (i) { return '<div class="tl' + (S.dice[i].neon ? " neon-d" : "") + '">' + S.dice[i].l + "</div>"; }).join("") + (ok ? '<span class="num worth">' + money(worth(S.picked)) + "</span>" : "") : '<span class="ph">Tap dice to spell</span>';
+  $("dice").innerHTML = S.dice.map(function (d, i) {
+    return '<button class="die' + (d.gone ? " gone" : "") + (d.neon ? " neon-d" : "") + (S.picked.indexOf(i) >= 0 ? " sel" : "") + (rolled && !d.gone ? " rolling" : "") + '" data-die="' + i + '" style="animation-delay:' + i * 35 + 'ms"><b>' + d.l + "</b><i>" + (LF.LETTER_VALUE[d.l] || "") + "</i></button>";
+  }).join("");
+  var row = $("rowA");
+  if (S.picked.length) {
+    row.className = "row one";
+    row.innerHTML = '<button class="btn ghost" data-act="clear" aria-label="Clear">✕</button><button class="btn play" data-act="play"' + (ok ? "" : " disabled") + ">" + (ok ? "Play " + word().toUpperCase() : S.picked.length < 3 ? "3+ letters" : "Not a word") + "</button>";
+  } else {
+    var why = rollBlock(), risk = S.risk == null ? "" : Math.round(S.risk * 100) + "% bust";
+    row.className = "row";
+    row.innerHTML = '<button class="btn bank" data-act="bank">Bank<small>' + (S.take ? "Keep " + money(S.take) : "Fold this hand") + '</small></button>' +
+      '<button class="btn roll" data-act="roll"' + (why ? " disabled" : "") + ">Roll " + rollSet().length + "<small>" + (why || "Heat ×" + Math.min(HEAT_CAP, S.heat + 1) + " · " + risk) + "</small></button>";
+  }
+}
+
+document.addEventListener("click", function (e) {
+  var t = e.target.closest("[data-die],[data-act],[data-go]"); if (!t) return;
+  if (t.dataset.go) return newNight(t.dataset.go);
+  if (t.dataset.die) return tapDie(+t.dataset.die);
+  var a = t.dataset.act;
+  if (a === "clear") { S.picked = []; snd("deselect"); render(); }
+  else if (a === "play") playWord(); else if (a === "bank") bank(); else if (a === "roll") roll();
+});
+(function () { var b = store("sv_best"); if (b) $("bestLine").textContent = "Your best night: " + money(b) + " · " + rankOf(b); })();
+</script>
+</body>
+</html>
